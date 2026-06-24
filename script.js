@@ -1,0 +1,446 @@
+// ==========================================
+// 配置区：步骤定义 & 系数规则
+// ==========================================
+
+// 动态步骤配置（步骤 4-7）
+// 每个步骤按宠物类型区分文案和选项
+// 字段说明：title(可选)/desc(可选)/key(必填)/options(必填)
+const STEP_CONFIGS = {
+    4: {
+        dog: {
+            title: '运动时长',
+            desc: '宝贝每天的运动量如何？',
+            key: 'exercise',
+            options: [
+                { value: 'light', label: '🚶 轻度运动（每天 < 1小时）' },
+                { value: 'moderate', label: '🏃 中度运动（1 ~ 3 小时/天）' },
+                { value: 'high', label: '🏋️ 高强度工作 / 赛犬' }
+            ]
+        },
+        cat: {
+            title: '是否户外散养',
+            desc: '宝贝是否有户外散养的情况？',
+            key: 'outdoor',
+            options: [
+                { value: 'yes', label: '🌳 是，会出门活动' },
+                { value: 'no', label: '🏠 否，纯室内' }
+            ]
+        }
+    },
+    5: {
+        dog: {
+            key: 'bodyCondition',
+            options: [
+                { value: 'severe', label: '严重超重' },
+                { value: 'overweight', label: '超重' },
+                { value: 'normal', label: '正常体型' },
+                { value: 'thin', label: '偏瘦' }
+            ]
+        },
+        cat: {
+            key: 'bodyCondition',
+            options: [
+                { value: 'severe', label: '超重' },
+                { value: 'normal', label: '正常体型' },
+                { value: 'thin', label: '偏瘦' }
+            ]
+        }
+    },
+    6: {
+        dog: {
+            key: 'age',
+            options: [
+                { value: 'baby', label: '👶 宝宝（4个月以下）' },
+                { value: 'kid', label: '🐕 幼犬（4 ~ 12个月）' },
+                { value: 'adult', label: '🐾 成年犬（1 ~ 7岁）' },
+                { value: 'senior', label: '🧓 老年犬（≥ 7岁）' }
+            ]
+        },
+        cat: {
+            key: 'age',
+            options: [
+                { value: 'baby', label: '👶 宝宝（4个月以下）' },
+                { value: 'young', label: '🐈 幼猫（4 ~ 12个月）' },
+                { value: 'adult', label: '🐾 成年猫（1 ~ 7岁）' },
+                { value: 'senior', label: '🧓 老年猫（≥ 7岁）' }
+            ]
+        }
+    },
+    7: {
+        dog: {
+            desc: '宝贝目前是否怀孕或哺乳？',
+            key: 'pregnant',
+            options: [
+                { value: 'early', label: '怀孕期' },
+                { value: 'late', label: '哺乳期' },
+                { value: 'none', label: '非孕/哺乳期' }
+            ]
+        },
+        cat: {
+            desc: '宝贝目前是否怀孕？',
+            key: 'pregnant',
+            options: [
+                { value: 'yes', label: '是，正在怀孕期' },
+                { value: 'no', label: '否' }
+            ]
+        }
+    }
+};
+
+// 步骤对应的 DOM 元素 ID 映射
+const STEP_ELEMENT_IDS = {
+    4: { title: 'step4Title', desc: 'step4Desc', options: 'step4Options' },
+    5: { options: 'bodyOptions' },
+    6: { options: 'ageOptions' },
+    7: { desc: 'pregDesc', options: 'pregOptions' }
+};
+
+// 系数计算规则链
+// 每条规则：{ name, apply: (state, prev) => {coeff, note} }
+// "继承"语义：返回 prev.coeff，note 标注继承来源
+const COEFFICIENT_RULES = {
+    dog: [
+        {
+            name: '运动+绝育',
+            apply: (state) => {
+                if (state.exercise === 'light') {
+                    return state.neutered === 'yes'
+                        ? { coeff: 1.2, note: '绝育犬轻度运动 1.2' }
+                        : { coeff: 1.4, note: '未绝育犬轻度运动 1.4' };
+                }
+                if (state.exercise === 'moderate') {
+                    return state.neutered === 'yes'
+                        ? { coeff: 1.6, note: '绝育犬中度运动 1.6' }
+                        : { coeff: 1.8, note: '未绝育犬中度运动 1.8' };
+                }
+                return { coeff: 2.0, note: '高强度运动 2.0' };
+            }
+        },
+        {
+            name: '体型',
+            apply: (state, prev) => {
+                if (state.bodyCondition === 'severe') return { coeff: 1.0, note: '严重超重 1' };
+                if (state.bodyCondition === 'overweight') return { coeff: 1.2, note: '超重 1.2' };
+                if (state.bodyCondition === 'thin') return { coeff: 2.0, note: '偏瘦 2' };
+                return { coeff: prev.coeff, note: prev.note + ' → 正常体型(继承)' };
+            }
+        },
+        {
+            name: '年龄',
+            apply: (state, prev) => {
+                if (state.age === 'baby') return { coeff: 3.0, note: '宝宝犬 3.0' };
+                if (state.age === 'kid') return { coeff: 2.0, note: '幼犬 2.0' };
+                if (state.age === 'senior') return { coeff: 1.2, note: '老年犬 1.2' };
+                return { coeff: prev.coeff, note: prev.note + ' → 成年犬(继承)' };
+            }
+        },
+        {
+            name: '孕哺',
+            apply: (state, prev) => {
+                if (state.pregnant === 'early') return { coeff: 1.8, note: '怀孕期 1.8' };
+                if (state.pregnant === 'late') return { coeff: 2.0, note: '哺乳期 2.0' };
+                return { coeff: prev.coeff, note: prev.note + ' → 非孕/哺乳期(继承)' };
+            }
+        },
+        {
+            name: '术后',
+            apply: (state, prev) => {
+                if (state.postSurgery === 'spay') return { coeff: 1.4, note: '绝育术后恢复 1.4' };
+                if (state.postSurgery === 'other') return { coeff: 1.0, note: '其他术后 1.0' };
+                return { coeff: prev.coeff, note: prev.note + ' → 健康状态(继承)' };
+            }
+        }
+    ],
+    cat: [
+        {
+            name: '绝育',
+            apply: (state) => {
+                return state.neutered === 'yes'
+                    ? { coeff: 1.2, note: '已绝育猫 1.2' }
+                    : { coeff: 1.4, note: '未绝育猫 1.4' };
+            }
+        },
+        {
+            name: '户外',
+            apply: (state, prev) => {
+                if (state.outdoor === 'yes') return { coeff: 1.6, note: '户外散养 1.6' };
+                return { coeff: prev.coeff, note: prev.note + ' → 室内(继承)' };
+            }
+        },
+        {
+            name: '体型',
+            apply: (state, prev) => {
+                if (state.bodyCondition === 'severe') return { coeff: 0.9, note: prev.note + ' → 超重 0.9' };
+                if (state.bodyCondition === 'thin') return { coeff: 1.4, note: prev.note + ' → 偏瘦 1.4' };
+                return { coeff: prev.coeff, note: prev.note + ' → 正常体重(继承)' };
+            }
+        },
+        {
+            name: '年龄',
+            apply: (state, prev) => {
+                if (state.age === 'baby') return { coeff: 2.7, note: '宝宝猫 2.7' };
+                if (state.age === 'young') return { coeff: 2.0, note: '幼猫 2.0' };
+                if (state.age === 'senior') return { coeff: 1.0, note: '老年猫 1.0' };
+                return { coeff: prev.coeff, note: prev.note + ' → 成年猫(继承)' };
+            }
+        },
+        {
+            name: '怀孕',
+            apply: (state, prev) => {
+                if (state.pregnant === 'yes') return { coeff: 2.5, note: '怀孕期 2.5' };
+                return { coeff: prev.coeff, note: prev.note + ' → 非孕期(继承)' };
+            }
+        },
+        {
+            name: '术后',
+            apply: (state, prev) => {
+                if (state.postSurgery === 'spay') return { coeff: 1.2, note: '绝育术后恢复 1.2' };
+                if (state.postSurgery === 'other') return { coeff: 1.0, note: '其他术后 1.0' };
+                return { coeff: prev.coeff, note: prev.note + ' → 健康状态(继承)' };
+            }
+        }
+    ]
+};
+
+// ==========================================
+// 状态管理
+// ==========================================
+
+const INITIAL_STATE = {
+    petType: null, weight: null, gender: null, neutered: null,
+    exercise: null, outdoor: null, bodyCondition: null, age: null,
+    pregnant: null, postSurgery: null
+};
+
+let state = { ...INITIAL_STATE };
+let currentStep = 0;
+
+// ==========================================
+// 流程控制
+// ==========================================
+
+function getStepFlow() {
+    let flow = [0, 1, 2, 3, 4, 5, 6];
+    if (state.gender === 'female' && state.neutered === 'no' &&
+        (state.age === 'adult' || state.age === 'senior')) {
+        flow.push(7);
+    }
+    flow.push(8, 9);
+    return flow;
+}
+
+function getStepKey(stepNum) {
+    const keyMap = {
+        2: 'gender', 3: 'neutered',
+        4: state.petType === 'dog' ? 'exercise' : 'outdoor',
+        5: 'bodyCondition', 6: 'age', 7: 'pregnant', 8: 'postSurgery'
+    };
+    return keyMap[stepNum] || null;
+}
+
+// ==========================================
+// UI 渲染
+// ==========================================
+
+function renderStepOptions(stepNum) {
+    const config = STEP_CONFIGS[stepNum]?.[state.petType];
+    const ids = STEP_ELEMENT_IDS[stepNum];
+    if (!config || !ids) return;
+
+    if (config.title && ids.title) {
+        document.getElementById(ids.title).textContent = config.title;
+    }
+    if (config.desc && ids.desc) {
+        document.getElementById(ids.desc).textContent = config.desc;
+    }
+    if (ids.options) {
+        document.getElementById(ids.options).innerHTML = config.options.map(opt => `
+            <div class="option-btn" data-step="${stepNum}" data-key="${config.key}" data-value="${opt.value}">
+                <span class="dot"></span> ${opt.label}
+            </div>
+        `).join('');
+    }
+}
+
+function buildProgressBar() {
+    const bar = document.getElementById('progressBar');
+    const flow = getStepFlow();
+    const stepCount = flow.length - 1;
+    bar.innerHTML = '';
+    for (let i = 0; i < stepCount; i++) {
+        const div = document.createElement('div');
+        div.className = 'progress-step';
+        div.id = 'prog-' + i;
+        bar.appendChild(div);
+    }
+    updateProgress();
+}
+
+function updateProgress() {
+    const flow = getStepFlow();
+    const currentIdx = flow.indexOf(currentStep);
+    const steps = document.querySelectorAll('.progress-step');
+    for (let i = 0; i < steps.length; i++) {
+        const el = document.getElementById('prog-' + i);
+        if (!el) continue;
+        el.classList.remove('active', 'done');
+        if (i < currentIdx) el.classList.add('done');
+        else if (i === currentIdx) el.classList.add('active');
+    }
+}
+
+function showStep(stepNum) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    const stepEl = document.getElementById('step-' + stepNum);
+    if (stepEl) {
+        stepEl.classList.add('active');
+        stepEl.style.animation = 'none';
+        stepEl.offsetHeight;
+        stepEl.style.animation = '';
+    }
+    currentStep = stepNum;
+    updateProgress();
+    configureStep(stepNum);
+}
+
+function configureStep(stepNum) {
+    if (STEP_CONFIGS[stepNum]) {
+        renderStepOptions(stepNum);
+    } else if (stepNum === 8) {
+        document.getElementById('step8Desc').textContent =
+            (state.petType === 'dog' ? '狗狗' : '猫咪') + '是否处于术后恢复期？';
+    } else if (stepNum === 9) {
+        showResult();
+    }
+
+    if ([2, 3, 4, 5, 6, 7, 8].includes(stepNum)) restoreSelection(stepNum);
+}
+
+function restoreSelection(stepNum) {
+    const key = getStepKey(stepNum);
+    if (key && state[key] !== null) {
+        const stepEl = document.getElementById('step-' + stepNum);
+        stepEl.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.toggle('selected', btn.getAttribute('data-value') === state[key]);
+        });
+        const btnNext = document.getElementById('btnNext' + stepNum);
+        if (btnNext) btnNext.disabled = false;
+    }
+}
+
+// ==========================================
+// 业务逻辑
+// ==========================================
+
+function calculateCoefficient() {
+    const rules = COEFFICIENT_RULES[state.petType];
+    let result = { coeff: 1.0, note: '' };
+    const trail = [];
+    for (const rule of rules) {
+        result = rule.apply(state, result);
+        trail.push(`${rule.name}: ${result.note}`);
+    }
+    return { ...result, trail: trail.join(' → ') };
+}
+
+function showResult() {
+    const { coeff, trail } = calculateCoefficient();
+    const rer = 70 * Math.pow(state.weight, 0.75);
+    const mer = rer * coeff;
+
+    document.getElementById('resultIcon').textContent = state.petType === 'dog' ? '🐶' : '🐱';
+    document.getElementById('resultValue').textContent = Math.round(mer);
+    document.getElementById('detailPet').textContent = state.petType === 'dog' ? '犬' : '猫';
+    document.getElementById('detailWeight').textContent = state.weight + ' kg';
+    document.getElementById('detailRER').textContent = Math.round(rer) + ' 千卡';
+    document.getElementById('detailCoeff').textContent = coeff.toFixed(1);
+    document.getElementById('resultNote').innerHTML =
+        '* MER = RER × 系数<br>' +
+        '* RER = 70 × ' + state.weight + '<sup>0.75</sup> = ' + Math.round(rer) + ' 千卡<br>' +
+        '* 系数推导：' + trail;
+}
+
+// ==========================================
+// 事件处理
+// ==========================================
+
+function selectPet(type) {
+    state.petType = type;
+    document.querySelectorAll('.pet-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`.pet-card[data-pet="${type}"]`).classList.add('selected');
+    document.getElementById('btnNext0').disabled = false;
+}
+
+function onWeightInput() {
+    const val = parseFloat(document.getElementById('weightInput').value);
+    state.weight = val > 0 ? val : null;
+    document.getElementById('btnNext1').disabled = !(val > 0);
+}
+
+function selectOption(step, key, value) {
+    state[key] = value;
+    const stepEl = document.getElementById('step-' + step);
+    stepEl.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    const clickedBtn = stepEl.querySelector(`.option-btn[data-value="${value}"]`);
+    if (clickedBtn) clickedBtn.classList.add('selected');
+    const btnNext = document.getElementById('btnNext' + step);
+    if (btnNext) btnNext.disabled = false;
+    if (key === 'age' || key === 'gender' || key === 'neutered') buildProgressBar();
+}
+
+function nextStep() {
+    const flow = getStepFlow();
+    const currentIdx = flow.indexOf(currentStep);
+    if (currentIdx < flow.length - 1) showStep(flow[currentIdx + 1]);
+}
+
+function prevStep() {
+    const flow = getStepFlow();
+    const currentIdx = flow.indexOf(currentStep);
+    if (currentIdx > 0) showStep(flow[currentIdx - 1]);
+}
+
+function restart() {
+    state = { ...INITIAL_STATE };
+    document.getElementById('weightInput').value = '';
+    document.querySelectorAll('.pet-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    for (let i = 0; i <= 8; i++) {
+        const btn = document.getElementById('btnNext' + i);
+        if (btn) btn.disabled = true;
+    }
+    buildProgressBar();
+    showStep(0);
+}
+
+// ==========================================
+// 初始化
+// ==========================================
+
+document.querySelector('.content').addEventListener('click', function(e) {
+    const petCard = e.target.closest('.pet-card');
+    if (petCard && petCard.dataset.pet) {
+        selectPet(petCard.dataset.pet);
+        return;
+    }
+    const optBtn = e.target.closest('.option-btn');
+    if (optBtn && optBtn.dataset.step) {
+        selectOption(
+            parseInt(optBtn.dataset.step),
+            optBtn.dataset.key,
+            optBtn.dataset.value
+        );
+        return;
+    }
+    const actionBtn = e.target.closest('[data-action]');
+    if (actionBtn) {
+        const action = actionBtn.dataset.action;
+        if (action === 'next') nextStep();
+        else if (action === 'prev') prevStep();
+        else if (action === 'restart') restart();
+    }
+});
+
+document.getElementById('weightInput').addEventListener('input', onWeightInput);
+
+buildProgressBar();
