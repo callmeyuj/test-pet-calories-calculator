@@ -26,18 +26,18 @@ const STEP_CONFIGS = {
         dog: {
             key: 'bodyCondition',
             options: [
-                { value: 'severe', label: '严重超重' },
-                { value: 'overweight', label: '超重' },
-                { value: 'normal', label: '正常体型' },
-                { value: 'thin', label: '偏瘦' }
+                { value: 'severe', label: '🐷 严重超重<br><small>圆滚滚，俯视无腰身，肋骨摸不到</small>' },
+                { value: 'overweight', label: '🐶 超重<br><small>微胖，腰身模糊，肋骨不易摸到</small>' },
+                { value: 'normal', label: '🐕 正常体型<br><small>匀称，腰身明显，肋骨可摸不可见</small>' },
+                { value: 'thin', label: '🦮 偏瘦<br><small>肋骨可见，瘦削，腰身极细</small>' }
             ]
         },
         cat: {
             key: 'bodyCondition',
             options: [
-                { value: 'severe', label: '超重' },
-                { value: 'normal', label: '正常体型' },
-                { value: 'thin', label: '偏瘦' }
+                { value: 'severe', label: '🐱 超重<br><small>圆润，俯视无明显腰身</small>' },
+                { value: 'normal', label: '🐈 正常体型<br><small>匀称，腰身可见</small>' },
+                { value: 'thin', label: '🐈‍⬛ 偏瘦<br><small>瘦削，肋骨隐约可见</small>' }
             ]
         }
     },
