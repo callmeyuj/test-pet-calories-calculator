@@ -35,9 +35,9 @@ const STEP_CONFIGS = {
         cat: {
             key: 'bodyCondition',
             options: [
-                { value: 'severe', label: '🐷 肥胖<br><small>圆润，俯视无明显腰身</small>' },
-                { value: 'normal', label: '🐈 标准<br><small>匀称，腰身可见</small>' },
-                { value: 'thin', label: '🐈‍⬛ 偏瘦<br><small>瘦削，肋骨隐约可见</small>' }
+                { value: 'severe', label: '🐷 肥胖<br><small>圆润，俯视无腰身，肋骨摸不到</small>'},
+                { value: 'normal', label: '🐈 标准<br><small>匀称，腰身明显，肋骨可摸不可见</small>' },
+                { value: 'thin', label: '🐈‍⬛ 偏瘦<br><small>削瘦，腰身极细，肋骨可见</small>'}
             ]
         }
     },
@@ -45,19 +45,19 @@ const STEP_CONFIGS = {
         dog: {
             key: 'age',
             options: [
-                { value: 'baby', label: '👶 宝宝（4个月以下）' },
-                { value: 'kid', label: '🐕 幼犬（4 ~ 12个月）' },
-                { value: 'adult', label: '🐾 成年犬（1 ~ 7岁）' },
-                { value: 'senior', label: '🧓 老年犬（≥ 7岁）' }
+                { value: 'baby', label: '🍼 宝宝（4个月以下）' },
+                { value: 'kid', label: '🐾 幼犬（4 ~ 12个月）' },
+                { value: 'adult', label: '🐕 成年犬（1 ~ 7岁）' },
+                { value: 'senior', label: '🦯 老年犬（≥ 7岁）' }
             ]
         },
         cat: {
             key: 'age',
             options: [
-                { value: 'baby', label: '👶 宝宝（4个月以下）' },
-                { value: 'young', label: '🐈 幼猫（4 ~ 12个月）' },
-                { value: 'adult', label: '🐾 成年猫（1 ~ 7岁）' },
-                { value: 'senior', label: '🧓 老年猫（≥ 7岁）' }
+                { value: 'baby', label: '🍼 宝宝（4个月以下）' },
+                { value: 'young', label: '🐾 幼猫（4 ~ 12个月）' },
+                { value: 'adult', label: '🐈 成年猫（1 ~ 7岁）' },
+                { value: 'senior', label: '🦯 老年猫（≥ 7岁）' }
             ]
         }
     },
