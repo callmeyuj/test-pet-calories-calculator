@@ -178,8 +178,51 @@
                             <div class="result-note-content" id="resultNoteContent"></div>
                         </div>
                     </details>
-                    <button class="btn btn-restart" data-action="restart">🔄 重新计算</button>
+                    <button class="btn btn-restart" id="btnFeedingCalc">🍖 查看喂食量 <span class="btn-arrow"></span></button>
                     <p class="result-disclaimer">* 仅提供每日热量参考，具体摄入量按个体情况调整。</p>
+                </div>
+            </div>
+
+            <!-- 喂食量计算页面 -->
+            <div class="step" id="step-10">
+                <div class="feeding-page">
+                    <div class="feeding-mer-summary">
+                        <div class="feeding-icon" id="feedingIcon"></div>
+                        <div class="feeding-mer-text">您的爱宠每日大致需要摄入</div>
+                        <div class="feeding-mer-value"><span id="feedingMerValue"></span> 千卡</div>
+                    </div>
+
+                    <!-- 自定义热量输入 -->
+                    <div class="custom-calorie-section">
+                        <div class="section-title">自定义产品热量计算</div>
+                         <div class="brand-note">* 以 MER × 0.95 热量缺口估算</div>
+                        <div class="custom-calorie-wrapper">
+                            <input type="number" class="custom-calorie-input" id="customCalorieInput" placeholder="输入每包热量" min="1" step="1">
+                            <span class="custom-calorie-unit">千卡/包</span>
+                        </div>
+                        <div class="custom-result" id="customResult"></div>
+                    </div>
+
+                    <!-- uki oki 品牌喂食建议表 -->
+                    <div class="brand-suggestions">
+                        <div class="brand-title">uki oki 品牌鲜食喂食建议</div>
+                        <div class="suggestion-table">
+                            <div class="suggestion-header">
+                                <span class="col-flavor">口味</span>
+                                <span class="col-kcal">单包热量</span>
+                                <span class="col-grams">单包克数</span>
+                                <span class="col-packs">建议包数</span>
+                            </div>
+                            <div class="suggestion-body" id="suggestionBody"></div>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-back-result" id="btnBackResult">
+                            <span class="btn-arrow"></span> 返回结果
+                        </button>
+                        <button class="btn btn-restart" data-action="restart">🔄 重新计算</button>
+                    </div>
                 </div>
             </div>
         </div>

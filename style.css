@@ -247,14 +247,14 @@ body {
 }
 
 .btn-next {
-    background: linear-gradient(135deg, #c0c61a 0%, #a3a814 100%);
+    background: linear-gradient(135deg, #e0e721 0%, #c8ce1c 100%);
     color: #212322;
     box-shadow: 0 4px 14px rgba(163, 168, 20, 0.28);
 }
 
 .btn-next:hover:not(:disabled) {
     transform: translateY(-1px);
-    background: linear-gradient(135deg, #e0e721 0%, #c8ce1c 100%);
+    background: linear-gradient(135deg, #c0c61a 0%, #a3a814 100%);
     box-shadow: 0 8px 22px rgba(224, 231, 33, 0.4);
 }
 
@@ -277,6 +277,16 @@ body {
     transform: translateY(-1px);
     background: linear-gradient(135deg, #c0c61a 0%, #a3a814 100%);
     box-shadow: 0 8px 22px rgba(163, 168, 20, 0.4);
+}
+
+.btn-restart .btn-arrow {
+    background-image: url('image/next-hover-arrow.png');
+    margin-left: 4px;
+}
+
+.btn-row .btn-restart {
+    margin-top: 0;
+    min-height: 48px;
 }
 
 .result-card { text-align: center; padding: 10px 0; }
@@ -445,6 +455,196 @@ body {
 
 .btn-next:disabled .btn-arrow {
     background-image: url('image/next-normal-arrow.png');
+}
+
+/* 喂食量计算功能样式 */
+/* 喂食量页面样式 */
+.feeding-page {
+    text-align: center;
+}
+
+.feeding-mer-summary {
+    margin-bottom: 24px;
+}
+
+.feeding-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.feeding-mer-text {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.feeding-mer-value {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4A6A1D 0%, #6a8f2d 40%, #e0e721 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+/* 自定义热量输入区域 */
+.custom-calorie-section {
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fafde8 0%, #f5f7d0 100%);
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 3px solid #e0e721;
+    text-align: left;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4A6A1D;
+    margin-bottom: 12px;
+}
+
+.custom-calorie-wrapper {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.custom-calorie-input {
+    width: 100%;
+    border: 2px solid #d7d2cb;
+    border-radius: 10px;
+    padding: 12px 70px 12px 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #212322;
+    outline: none;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.custom-calorie-input:focus {
+    border-color: #e0e721;
+    box-shadow: 0 0 0 2px rgba(224, 231, 33, 0.2);
+}
+
+.custom-calorie-unit {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: #888;
+    font-weight: 500;
+}
+
+.custom-result {
+    text-align: center;
+    font-size: 15px;
+    color: #212322;
+    font-weight: 600;
+    min-height: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.custom-result.show {
+    opacity: 1;
+}
+
+.custom-result strong {
+    font-size: 20px;
+    color: #4A6A1D;
+}
+
+/* 品牌建议表样式 */
+.brand-suggestions {
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f2f0eb 0%, #fafde8 100%);
+    border-left: 3px solid #e5eace;
+    border-radius: 12px;
+    padding: 16px;
+    color: #212322;
+    text-align: left;
+}
+
+.brand-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #212322;
+    margin-bottom: 4px;
+}
+
+.brand-note {
+    font-size: 11px;
+    color: #9a9a9a;
+    margin-bottom: 14px;
+}
+
+.suggestion-table {
+    width: 100%;
+}
+
+.suggestion-header {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 2px solid #4A6A1D;
+    font-size: 12px;
+    font-weight: 600;
+    color: #212322;
+}
+
+.suggestion-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5eace;
+    font-size: 13px;
+    align-items: center;
+}
+
+.suggestion-row:last-child {
+    border-bottom: none;
+}
+
+.suggestion-row.average-row {
+    background: rgba(224, 231, 33, 0.15);
+    border-radius: 6px;
+    padding: 10px 0;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+.suggestion-row.average-row .col-packs {
+    color: #4A6A1D;
+    font-weight: 700;
+}
+
+.col-flavor { flex: 2; }
+.col-kcal { flex: 1.5; text-align: center; }
+.col-grams { flex: 1; text-align: center; }
+.col-packs { flex: 1.5; text-align: right; color: #4A6A1D; font-weight: 600; }
+
+/* 返回结果按钮 */
+.btn-back-result {
+    background: linear-gradient(135deg, #e8e6e1 0%, #d7d2cb 100%);
+    color: #9a9a9a;
+    flex: 1;
+    min-height: 48px;
+}
+
+.btn-back-result:hover {
+    background: linear-gradient(135deg, #e8e4dd 0%, #d7d2cb 100%);
+    color: #212322;
+    box-shadow: 0 4px 12px rgba(33, 35, 34, 0.08);
+}
+
+.btn-back-result .btn-arrow {
+    background-image: url('image/back-normal-arrow.png');
+    margin-right: 4px;
+}
+
+.btn-back-result:hover .btn-arrow {
+    background-image: url('image/back-hover-arrow.png');
 }
 
 @media (max-width: 480px) {

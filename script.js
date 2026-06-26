@@ -196,6 +196,25 @@ const COEFFICIENT_RULES = {
     ]
 };
 
+// uki oki 产品数据
+const PRODUCT_DATA = {
+    dog: [
+        { name: '鸡肉鳕鱼', grams: 120, kcal: 121 },
+        { name: '猪肉蓝莓', grams: 120, kcal: 149 },
+        { name: '嫩牛牡蛎', grams: 120, kcal: 144 },
+        { name: '野牧鹿肉', grams: 120, kcal: 154 },
+        { name: '平均数据', grams: 120, kcal: 142 }
+    ],
+    cat: [
+        { name: '鸡肉鳕鱼', grams: 100, kcal: 107 },
+        { name: '猪肉蓝莓', grams: 100, kcal: 111 },
+        { name: '嫩牛牡蛎', grams: 100, kcal: 127 },
+        { name: '野牧鹿肉', grams: 100, kcal: 132 },
+        { name: '平均数据', grams: 100, kcal: 119 }
+    ]
+};
+const CALORIE_DEFICIT_RATIO = 0.95; // 长期零食热量缺口系数（可调整）
+
 // 状态管理
 const INITIAL_STATE = {
     petType: null, weight: null, gender: null, neutered: null,
@@ -205,6 +224,7 @@ const INITIAL_STATE = {
 
 let state = { ...INITIAL_STATE };
 let currentStep = 0;
+let currentMER = 0; // 存储当前 MER 用于喂食量计算
 
 // 流程控制
 function getStepFlow() {
@@ -330,6 +350,7 @@ function showResult() {
     const { coeff, trail } = calculateCoefficient();
     const rer = 70 * Math.pow(state.weight, 0.75);
     const mer = rer * coeff;
+    currentMER = mer; // 存储 MER 供喂食量计算使用
 
     document.getElementById('resultIcon').textContent = state.petType === 'dog' ? '🐶' : '🐱';
     document.getElementById('resultValue').textContent = Math.round(mer);
@@ -341,6 +362,62 @@ function showResult() {
         '* MER = RER × 推导系数<br>' +
         '* RER = 70 × ' + state.weight + 'kg<sup>0.75</sup> = ' + Math.round(rer) + ' 千卡<br>' +
         '* 推导系数 = ' + coeff.toFixed(1) + ' /明细/ → ' + trail;
+
+    renderBrandSuggestions(); // 渲染品牌建议表
+}
+
+// 喂食量计算功能
+function renderBrandSuggestions() {
+    const products = PRODUCT_DATA[state.petType];
+    const adjustedMER = currentMER * CALORIE_DEFICIT_RATIO;
+    const tbody = document.getElementById('suggestionBody');
+
+    tbody.innerHTML = products.map(product => {
+        const packs = roundToHalf(adjustedMER / product.kcal);
+        const isAverage = product.name === '平均数据';
+        return `
+            <div class="suggestion-row ${isAverage ? 'average-row' : ''}">
+                <span class="col-flavor">${product.name}</span>
+                <span class="col-kcal">${product.kcal} kcal</span>
+                <span class="col-grams">${product.grams}g</span>
+                <span class="col-packs">${packs.toFixed(1)} 包</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function goToFeedingPage() {
+    // 填充 MER 摘要信息
+    document.getElementById('feedingIcon').textContent = state.petType === 'dog' ? '🐶' : '🐱';
+    document.getElementById('feedingMerValue').textContent = Math.round(currentMER);
+    renderBrandSuggestions();
+    document.getElementById('progressBar').style.display = 'none';
+    showStep(10);
+}
+
+function backToResult() {
+    document.getElementById('progressBar').style.display = '';
+    showStep(9);
+}
+
+function onCustomCalorieInput(e) {
+    const kcalPerPack = parseFloat(e.target.value);
+    const resultDiv = document.getElementById('customResult');
+
+    if (kcalPerPack > 0 && currentMER > 0) {
+        const adjustedMER = currentMER * CALORIE_DEFICIT_RATIO;
+        const packs = roundToHalf(adjustedMER / kcalPerPack);
+        resultDiv.innerHTML = `每天建议喂食 <strong>${packs.toFixed(1)} 包</strong>`;
+        resultDiv.classList.add('show');
+    } else {
+        resultDiv.innerHTML = '';
+        resultDiv.classList.remove('show');
+    }
+}
+
+// 四舍五入到 0.5 为单位
+function roundToHalf(value) {
+    return Math.round(value * 2) / 2;
 }
 
 // 事件处理
@@ -382,6 +459,7 @@ function prevStep() {
 
 function restart() {
     state = { ...INITIAL_STATE };
+    currentMER = 0;
     document.getElementById('weightInput').value = '';
     document.querySelectorAll('.pet-card').forEach(c => c.classList.remove('selected'));
     document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
@@ -389,6 +467,12 @@ function restart() {
         const btn = document.getElementById('btnNext' + i);
         if (btn) btn.disabled = true;
     }
+    // 重置喂食量计算区域
+    const customInput = document.getElementById('customCalorieInput');
+    if (customInput) customInput.value = '';
+    const customResult = document.getElementById('customResult');
+    if (customResult) { customResult.innerHTML = ''; customResult.classList.remove('show'); }
+
     buildProgressBar();
     showStep(0);
 }
@@ -419,5 +503,10 @@ document.querySelector('.content').addEventListener('click', function(e) {
 });
 
 document.getElementById('weightInput').addEventListener('input', onWeightInput);
+
+// 喂食量功能事件监听
+document.getElementById('btnFeedingCalc').addEventListener('click', goToFeedingPage);
+document.getElementById('btnBackResult').addEventListener('click', backToResult);
+document.getElementById('customCalorieInput').addEventListener('input', onCustomCalorieInput);
 
 buildProgressBar();
