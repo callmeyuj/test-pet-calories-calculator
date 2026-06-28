@@ -10,9 +10,9 @@
 功能：引导用户选择宠物信息，计算每日建议摄入热量（MER），并给出 uki oki 品牌鲜食喂食建议。
 
 核心文件：
-- `index.html` — 页面结构（11 个步骤，step-0 到 step-10）
-- `style.css` — 样式（品牌色变量、响应式）
-- `script.js` — 逻辑（状态管理、系数推导链、喂食量计算）
+- `index.html` — 页面结构（静态步骤 step-0~3 + step-9~10，动态步骤 step-4~8 由 JS 生成）
+- `style.css` — 样式（完整 CSS 变量系统、响应式、无障碍适配）
+- `script.js` — 逻辑（状态管理、系数推导链、动态步骤生成、喂食量计算）
 - `harness.md` — 迭代行为规范（Plan 模式优先、分步执行、版本管理）
 - `CHANGELOG.md` — 版本记录
 
@@ -88,13 +88,51 @@ let state = {
 
 | 函数 | 作用 | 文件 |
 |------|------|------|
+| `initDynamicSteps()` | 动态生成 step-4~8 的 HTML 结构 | script.js |
+| `initFireflies()` | 动态生成萤火虫装饰元素 | script.js |
+| `createPostSurgeryRule()` | 规则工厂函数，生成术后恢复规则 | script.js |
 | `calculateCoefficient()` | 执行系数推导链，返回 `{coeff, note, trail}` | script.js |
 | `showResult()` | 计算 RER/MER 并渲染结果页 | script.js |
 | `renderBrandSuggestions()` | 渲染 uki oki 喂食建议表 | script.js |
+| `renderStepOptions(stepNum)` | 渲染动态步骤的标题/描述/选项 | script.js |
 | `selectPet(type)` | 选择宠物类型，启用下一步按钮 | script.js |
 | `selectOption(step, key, value)` | 选择选项卡片，更新状态 | script.js |
 | `showStep(stepNum)` | 切换步骤，触发动画和配置 | script.js |
 | `restart()` | 重置所有状态，回到 Step 0 | script.js |
+
+### 动态步骤配置
+
+步骤 4-8 由 `STEP_CONFIGS` 配置驱动，`initDynamicSteps()` 在页面加载时生成 HTML：
+
+```javascript
+// 新增步骤只需在此添加配置
+const STEP_CONFIGS = {
+    4: { dog: {...}, cat: {...} },  // 运动/户外
+    5: { dog: {...}, cat: {...} },  // 体型
+    6: { dog: {...}, cat: {...} },  // 年龄
+    7: { dog: {...}, cat: {...} },  // 孕哺
+    8: { dog: {...}, get cat() {...} }  // 术后（用 getter 复用配置）
+};
+```
+
+### CSS 变量系统
+
+```css
+:root {
+    /* 品牌色 */
+    --brand-dark, --brand-green, --brand-yellow, ...
+    /* 间距 */
+    --space-xs: 4px, --space-sm: 8px, --space-md: 16px, ...
+    /* 圆角 */
+    --radius-sm: 6px, --radius-md: 12px, ...
+    /* 过渡 */
+    --transition-fast: 0.2s, --transition-base: 0.3s, ...
+}
+
+/* 公共工具类 */
+.text-gradient-brand { ... }  /* 渐变文字 */
+.input-suffix { ... }         /* 输入框单位定位 */
+```
 
 ### CSS 变量体系
 
@@ -165,7 +203,7 @@ git push origin main && git push pet-calories main
 
 ## 当前版本
 
-**V1.4** — 2026/06/27（三核心文件代码优化，零功能变更，纯重构）
+**V2.0** — 2026/06/28（代码结构大重构，零功能变更，纯架构优化）
 
 ---
 
@@ -187,6 +225,8 @@ git push origin main && git push pet-calories main
 
 | 时间 | 内容 |
 |------|------|
+| 2026/06/28 | V2.0 代码结构大重构（动态步骤生成、规则工厂、CSS 变量系统、无障碍适配） |
+| 2026/06/28 | 查看喂食量按钮添加微光 + 光晕呼吸 + 萤火虫特效 |
 | 2026/06/27 | btn-back 背景改深（不再和 disabled 一样灰），箭头统一用 `back-hover-arrow.png` |
 | 2026/06/27 | pet-calories remote 从 HTTPS 改为 SSH（解决网络切换后连接失败） |
 | 2026/06/27 | V1.4 代码重构（常量提取、CSS 变量化、DOM 缓存、死代码清理） |

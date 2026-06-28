@@ -2,6 +2,40 @@
 
 ---
 
+## V2.0 — 2026/06/28
+
+### 代码结构大重构（零功能变更，纯架构优化）
+
+**index.html（229 → 174 行，-55 行）：**
+- 移除 step-4~8 的 HTML 骨架，改为 JS 动态生成
+- 移除萤火虫 span 硬编码，改为 JS 动态生成
+- 添加 `id="feedingBtnWrapper"` 用于 JS 萤火虫容器
+
+**script.js（576 → 609 行，结构优化）：**
+- 新增 `initDynamicSteps()` — 动态生成步骤 4-8
+- 新增 `initFireflies()` — 动态生成萤火虫元素
+- 新增 `createPostSurgeryRule()` — 规则工厂函数，消除犬猫术后规则重复
+- 移除 `STEP_ELEMENT_IDS` — 不再需要手动映射 DOM ID
+- `els` → `dom` 重命名，语义更清晰
+- `renderStepOptions()` 改用 DOM 查询替代缓存 ID
+- Step 8 猫配置用 getter 复用犬配置，消除重复
+
+**style.css（831 → 854 行，变量化 + 公共类）：**
+- 补充 CSS 变量：品牌色扩展、间距系统、圆角系统、过渡时间
+- 提取 `.text-gradient-brand` 公共类（渐变文字效果复用）
+- 提取 `.input-suffix` 公共类（输入框单位定位复用）
+- 萤火虫系统用 CSS 自定义属性精简（`--ff-size`, `--ff-path`, `--ff-dur` 等）
+- 硬编码颜色全部替换为 CSS 变量
+- 新增 `prefers-reduced-motion` 无障碍适配
+
+**延展性提升：**
+- 新增步骤只需在 `STEP_CONFIGS` 中添加配置，无需修改 HTML
+- 新增萤火虫只需添加一行 CSS 配置
+- 规则工厂函数支持灵活扩展术后规则
+- CSS 变量系统完整，便于主题扩展
+
+---
+
 ## V1.4 — 2026/06/27
 
 ### 三核心文件代码优化

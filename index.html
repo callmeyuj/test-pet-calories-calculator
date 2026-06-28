@@ -90,56 +90,7 @@
                 </div>
             </div>
 
-            <!-- 步骤 4-8: 动态步骤（由 JS 渲染） -->
-            <div class="step" id="step-4">
-                <div class="step-title" id="step4Title"></div>
-                <div class="step-desc" id="step4Desc"></div>
-                <div class="options" id="step4Options"></div>
-                <div class="btn-row">
-                    <button class="btn btn-back" data-action="prev">上一步</button>
-                    <button class="btn btn-next" id="btnNext4" disabled data-action="next">下一步</button>
-                </div>
-            </div>
-
-            <div class="step" id="step-5">
-                <div class="step-title" id="step5Title"></div>
-                <div class="step-desc" id="step5Desc"></div>
-                <div class="options" id="bodyOptions"></div>
-                <div class="btn-row">
-                    <button class="btn btn-back" data-action="prev">上一步</button>
-                    <button class="btn btn-next" id="btnNext5" disabled data-action="next">下一步</button>
-                </div>
-            </div>
-
-            <div class="step" id="step-6">
-                <div class="step-title" id="step6Title"></div>
-                <div class="step-desc" id="step6Desc"></div>
-                <div class="options" id="ageOptions"></div>
-                <div class="btn-row">
-                    <button class="btn btn-back" data-action="prev">上一步</button>
-                    <button class="btn btn-next" id="btnNext6" disabled data-action="next">下一步</button>
-                </div>
-            </div>
-
-            <div class="step" id="step-7">
-                <div class="step-title" id="step7Title"></div>
-                <div class="step-desc" id="pregDesc"></div>
-                <div class="options" id="pregOptions"></div>
-                <div class="btn-row">
-                    <button class="btn btn-back" data-action="prev">上一步</button>
-                    <button class="btn btn-next" id="btnNext7" disabled data-action="next">下一步</button>
-                </div>
-            </div>
-
-            <div class="step" id="step-8">
-                <div class="step-title" id="step8Title"></div>
-                <div class="step-desc" id="step8Desc"></div>
-                <div class="options" id="step8Options"></div>
-                <div class="btn-row">
-                    <button class="btn btn-back" data-action="prev">上一步</button>
-                    <button class="btn btn-next" id="btnNext8" disabled data-action="next">计算结果 🎉</button>
-                </div>
-            </div>
+            <!-- 步骤 4-8: 由 JS 动态生成 -->
 
             <!-- 步骤 9: 结果页 -->
             <div class="step" id="step-9">
@@ -172,7 +123,9 @@
                             <div class="result-note-content" id="resultNoteContent"></div>
                         </div>
                     </details>
-                    <button class="btn btn-restart" id="btnFeedingCalc">🍖 查看喂食量</button>
+                    <div class="btn-wrapper btn-glow" id="feedingBtnWrapper">
+                        <button class="btn btn-restart" id="btnFeedingCalc">🍖 查看喂食量</button>
+                    </div>
                     <p class="result-disclaimer">* 仅提供每日热量参考，具体摄入量按个体情况调整。</p>
                 </div>
             </div>
