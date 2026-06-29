@@ -12,9 +12,12 @@
 核心文件：
 - `index.html` — 页面结构（静态步骤 step-0~3 + step-9~10，动态步骤 step-4~8 由 JS 生成）
 - `style.css` — 样式（完整 CSS 变量系统、响应式、无障碍适配）
-- `script.js` — 逻辑（状态管理、系数推导链、动态步骤生成、喂食量计算）
+- `script.js` — 逻辑（状态管理、系数推导链、动态步骤生成、喂食量计算、分享功能）
 - `harness.md` — 迭代行为规范（Plan 模式优先、分步执行、版本管理）
 - `CHANGELOG.md` — 版本记录
+
+外部依赖：
+- `html2canvas` (v1.4.1) — 快照截图功能，通过 CDN 引入
 
 ---
 
@@ -99,6 +102,11 @@ let state = {
 | `selectOption(step, key, value)` | 选择选项卡片，更新状态 | script.js |
 | `showStep(stepNum)` | 切换步骤，触发动画和配置 | script.js |
 | `restart()` | 重置所有状态，回到 Step 0 | script.js |
+| `captureSnapshot()` | html2canvas 捕获快照卡片，返回 canvas 和 blob | script.js |
+| `convertImagesToBase64()` | 将容器内图片转为 base64（解决跨域） | script.js |
+| `updateSnapshotData()` | 更新快照卡片中的动态数据 | script.js |
+| `downloadImage()` | 桌面端下载图片 | script.js |
+| `showImagePreview()` | 移动端显示图片预览弹窗 | script.js |
 
 ### 动态步骤配置
 
@@ -203,20 +211,15 @@ git push origin main && git push pet-calories main
 
 ## 当前版本
 
-**V2.1** — 2026/06/28（喂食量页按钮调整 + harness 规范更新）
+**V3.0** — 2026/06/29（分享功能 + 代码优化）
 
 ---
 
-## 待办功能（2026/06/27 提出）
+## 待办功能
 
 ### 1. optcard 点击音效
 - 范围：option-btn（步骤选项卡片）点击时播放音效
 - 方案：用 Web Audio API 生成短促点击音（或用户后续提供音效文件）
-- 状态：**待实现**
-
-### 2. 分享快照功能
-- 在结果页（Step 9）生成当前结果的图片，供用户保存/分享
-- 可能需要引入 html2canvas 库
 - 状态：**待实现**
 
 ---
@@ -225,6 +228,7 @@ git push origin main && git push pet-calories main
 
 | 时间 | 内容 |
 |------|------|
+| 2026/06/29 | V3.0 分享功能（快照卡片、保存图片、转发好友）+ 代码优化（提取公共函数、DOM 缓存扩展） |
 | 2026/06/28 | V2.1 喂食量页按钮调整（左：重新计算，右：前往商城）+ harness 规范更新 |
 | 2026/06/28 | V2.0 代码结构大重构（动态步骤生成、规则工厂、CSS 变量系统、无障碍适配） |
 | 2026/06/28 | 查看喂食量按钮添加微光 + 光晕呼吸 + 萤火虫特效 |

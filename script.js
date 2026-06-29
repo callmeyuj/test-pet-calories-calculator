@@ -108,12 +108,136 @@ const STEP_CONFIGS = {
             key: 'postSurgery',
             options: POST_SURGERY_OPTIONS
         },
-        // 猫的配置通过 getter 复用犬的，仅 desc 不同
         get cat() {
             return { ...STEP_CONFIGS[8].dog, desc: '猫咪是否处于术后恢复期？' };
         }
     }
 };
+
+// ========== 产品数据 ==========
+const PRODUCT_DATA = {
+    dog: [
+        { name: '鸡肉鳕鱼', grams: 120, kcal: 121 },
+        { name: '猪肉蓝莓', grams: 120, kcal: 149 },
+        { name: '嫩牛牡蛎', grams: 120, kcal: 144 },
+        { name: '野牧鹿肉', grams: 120, kcal: 154 },
+        { name: '平均数据', grams: 120, kcal: 142 }
+    ],
+    cat: [
+        { name: '鸡肉鳕鱼', grams: 80, kcal: 107 },
+        { name: '猪肉蓝莓', grams: 80, kcal: 111 },
+        { name: '嫩牛牡蛎', grams: 80, kcal: 127 },
+        { name: '野牧鹿肉', grams: 80, kcal: 132 },
+        { name: '平均数据', grams: 80, kcal: 119 }
+    ]
+};
+
+const CALORIE_DEFICIT_RATIO = 0.95;
+
+// ========== 状态管理 ==========
+const INITIAL_STATE = {
+    petType: null, weight: null, gender: null, neutered: null,
+    exercise: null, outdoor: null, bodyCondition: null, age: null,
+    pregnant: null, postSurgery: null
+};
+
+let state = { ...INITIAL_STATE };
+let currentStep = 0;
+let currentMER = 0;
+
+// ========== DOM 元素缓存 ==========
+const dom = {};
+
+function cacheElements() {
+    const ids = [
+        'weightInput', 'progressBar',
+        'btnNext0', 'btnNext1', 'btnNext2', 'btnNext3',
+        'resultIcon', 'resultValue', 'detailPet', 'detailWeight',
+        'detailRER', 'detailCoeff', 'resultNoteContent',
+        'btnFeedingCalc', 'feedingBtnWrapper',
+        'feedingIcon', 'feedingMerValue', 'suggestionBody',
+        'customCalorieInput', 'customResult',
+        // 分享相关
+        'shareModal', 'shareModalClose', 'shareSave', 'shareNow',
+        'snapshotCard', 'snapshotLine1', 'snapshotMer', 'snapshotPacks',
+        'imagePreviewModal', 'imagePreviewImg', 'imagePreviewClose',
+        'toast'
+    ];
+    ids.forEach(id => dom[id] = document.getElementById(id));
+}
+
+// ========== 工具函数 ==========
+function getPetConfig() {
+    return PET_CONFIG[state.petType];
+}
+
+function roundToHalf(value) {
+    return Math.round(value * 2) / 2;
+}
+
+function formatPacks(packs) {
+    return Number.isInteger(packs) ? packs.toString() : packs.toFixed(1);
+}
+
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// ========== 图片处理（分享功能）==========
+async function convertImagesToBase64(container) {
+    const images = container.querySelectorAll('img');
+    for (const img of images) {
+        if (img.src && !img.src.startsWith('data:')) {
+            try {
+                const response = await fetch(img.src);
+                const blob = await response.blob();
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+                img.src = dataUrl;
+            } catch (e) {
+                console.warn('图片转换失败:', e);
+            }
+        }
+    }
+}
+
+async function captureSnapshot() {
+    if (!dom.snapshotCard) return null;
+
+    await convertImagesToBase64(dom.snapshotCard);
+
+    const canvas = await html2canvas(dom.snapshotCard, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
+    });
+
+    return new Promise(resolve => {
+        canvas.toBlob(blob => resolve({ canvas, blob }), 'image/png');
+    });
+}
+
+function downloadImage(blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ukioki-${state.petType || 'pet'}-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function showImagePreview(canvas) {
+    dom.imagePreviewImg.src = canvas.toDataURL('image/png');
+    dom.imagePreviewModal.classList.add('active');
+}
 
 // ========== 规则工厂函数 ==========
 function createPostSurgeryRule(spayCoeff, otherCoeff = 1.0) {
@@ -174,7 +298,7 @@ const COEFFICIENT_RULES = {
                 return { coeff: prev.coeff, note: prev.note + ' → 非孕/哺乳期(继承)' };
             }
         },
-        createPostSurgeryRule(1.4)  // 犬绝育术后系数 1.4
+        createPostSurgeryRule(1.4)
     ],
     cat: [
         {
@@ -216,107 +340,9 @@ const COEFFICIENT_RULES = {
                 return { coeff: prev.coeff, note: prev.note + ' → 非孕期(继承)' };
             }
         },
-        createPostSurgeryRule(1.2)  // 猫绝育术后系数 1.2
+        createPostSurgeryRule(1.2)
     ]
 };
-
-// ========== 产品数据 ==========
-const PRODUCT_DATA = {
-    dog: [
-        { name: '鸡肉鳕鱼', grams: 120, kcal: 121 },
-        { name: '猪肉蓝莓', grams: 120, kcal: 149 },
-        { name: '嫩牛牡蛎', grams: 120, kcal: 144 },
-        { name: '野牧鹿肉', grams: 120, kcal: 154 },
-        { name: '平均数据', grams: 120, kcal: 142 }
-    ],
-    cat: [
-        { name: '鸡肉鳕鱼', grams: 80, kcal: 107 },
-        { name: '猪肉蓝莓', grams: 80, kcal: 111 },
-        { name: '嫩牛牡蛎', grams: 80, kcal: 127 },
-        { name: '野牧鹿肉', grams: 80, kcal: 132 },
-        { name: '平均数据', grams: 80, kcal: 119 }
-    ]
-};
-
-const CALORIE_DEFICIT_RATIO = 0.95;
-
-// ========== 状态管理 ==========
-const INITIAL_STATE = {
-    petType: null, weight: null, gender: null, neutered: null,
-    exercise: null, outdoor: null, bodyCondition: null, age: null,
-    pregnant: null, postSurgery: null
-};
-
-let state = { ...INITIAL_STATE };
-let currentStep = 0;
-let currentMER = 0;
-
-// ========== DOM 元素缓存 ==========
-const dom = {};
-
-function cacheElements() {
-    const ids = [
-        'weightInput', 'progressBar',
-        'btnNext0', 'btnNext1', 'btnNext2', 'btnNext3',
-        'resultIcon', 'resultValue', 'detailPet', 'detailWeight',
-        'detailRER', 'detailCoeff', 'resultNoteContent',
-        'btnFeedingCalc', 'feedingBtnWrapper',
-        'feedingIcon', 'feedingMerValue', 'suggestionBody',
-        'customCalorieInput', 'customResult'
-    ];
-    ids.forEach(id => dom[id] = document.getElementById(id));
-}
-
-// ========== 初始化工具函数 ==========
-
-// 动态生成步骤 4-8
-function initDynamicSteps() {
-    const content = document.querySelector('.content');
-    const step9 = document.getElementById('step-9');
-    const stepTemplate = `
-        <div class="step-title"></div>
-        <div class="step-desc"></div>
-        <div class="options"></div>
-        <div class="btn-row">
-            <button class="btn btn-back" data-action="prev">上一步</button>
-            <button class="btn btn-next" disabled data-action="next">下一步</button>
-        </div>
-    `;
-
-    for (let i = 4; i <= 8; i++) {
-        const step = document.createElement('div');
-        step.className = 'step';
-        step.id = `step-${i}`;
-        step.innerHTML = stepTemplate;
-        step.querySelector('.btn-next').id = `btnNext${i}`;
-        if (i === 8) {
-            step.querySelector('[data-action="next"]').textContent = '计算结果 🎉';
-        }
-        content.insertBefore(step, step9);
-        // 缓存按钮引用
-        dom[`btnNext${i}`] = step.querySelector('.btn-next');
-    }
-}
-
-// 动态生成萤火虫元素
-function initFireflies() {
-    const wrapper = document.getElementById('feedingBtnWrapper');
-    if (!wrapper) return;
-    for (let i = 1; i <= 6; i++) {
-        const span = document.createElement('span');
-        span.className = `firefly firefly-${i}`;
-        wrapper.appendChild(span);
-    }
-}
-
-// ========== 工具函数 ==========
-function getPetConfig() {
-    return PET_CONFIG[state.petType];
-}
-
-function roundToHalf(value) {
-    return Math.round(value * 2) / 2;
-}
 
 // ========== 流程控制 ==========
 function getStepFlow() {
@@ -462,7 +488,6 @@ function showResult() {
     renderBrandSuggestions();
 }
 
-// ========== 喂食量计算 ==========
 function renderBrandSuggestions() {
     const products = PRODUCT_DATA[state.petType];
     const adjustedMER = currentMER * CALORIE_DEFICIT_RATIO;
@@ -481,26 +506,15 @@ function renderBrandSuggestions() {
     }).join('');
 }
 
-function goToFeedingPage() {
-    const pet = getPetConfig();
-    dom.feedingIcon.textContent = pet.icon;
-    dom.feedingMerValue.textContent = Math.round(currentMER);
-    renderBrandSuggestions();
-    dom.progressBar.style.display = 'none';
-    showStep(10);
-}
+function updateSnapshotData() {
+    const petName = state.petType === 'dog' ? '小狗' : '小猫';
+    dom.snapshotLine1.textContent = `我家${petName}一天要摄入`;
+    dom.snapshotMer.textContent = dom.feedingMerValue.textContent;
 
-function onCustomCalorieInput(e) {
-    const kcalPerPack = parseFloat(e.target.value);
-
-    if (kcalPerPack > 0 && currentMER > 0) {
-        const adjustedMER = currentMER * CALORIE_DEFICIT_RATIO;
-        const packs = roundToHalf(adjustedMER / kcalPerPack);
-        dom.customResult.innerHTML = `每天建议喂食 <strong>${packs.toFixed(1)} 包</strong>`;
-        dom.customResult.classList.add('show');
-    } else {
-        dom.customResult.innerHTML = '';
-        dom.customResult.classList.remove('show');
+    const avgRow = dom.suggestionBody.querySelector('.average-row .col-packs');
+    if (avgRow) {
+        const packsNum = parseFloat(avgRow.textContent.trim().replace(' 包', ''));
+        dom.snapshotPacks.textContent = formatPacks(packsNum);
     }
 }
 
@@ -554,13 +568,81 @@ function restart() {
     showStep(0);
 }
 
+function goToFeedingPage() {
+    const pet = getPetConfig();
+    dom.feedingIcon.textContent = pet.icon;
+    dom.feedingMerValue.textContent = Math.round(currentMER);
+    renderBrandSuggestions();
+    dom.progressBar.style.display = 'none';
+    showStep(10);
+}
+
+function onCustomCalorieInput(e) {
+    const kcalPerPack = parseFloat(e.target.value);
+
+    if (kcalPerPack > 0 && currentMER > 0) {
+        const adjustedMER = currentMER * CALORIE_DEFICIT_RATIO;
+        const packs = roundToHalf(adjustedMER / kcalPerPack);
+        dom.customResult.innerHTML = `每天建议喂食 <strong>${packs.toFixed(1)} 包</strong>`;
+        dom.customResult.classList.add('show');
+    } else {
+        dom.customResult.innerHTML = '';
+        dom.customResult.classList.remove('show');
+    }
+}
+
+// ========== Toast 提示 ==========
+function showToast(message) {
+    if (!dom.toast) return;
+    dom.toast.textContent = message;
+    dom.toast.classList.add('show');
+    setTimeout(() => dom.toast.classList.remove('show'), 2000);
+}
+
+// ========== 初始化工具函数 ==========
+function initDynamicSteps() {
+    const content = document.querySelector('.content');
+    const step9 = document.getElementById('step-9');
+    const stepTemplate = `
+        <div class="step-title"></div>
+        <div class="step-desc"></div>
+        <div class="options"></div>
+        <div class="btn-row">
+            <button class="btn btn-back" data-action="prev">上一步</button>
+            <button class="btn btn-next" disabled data-action="next">下一步</button>
+        </div>
+    `;
+
+    for (let i = 4; i <= 8; i++) {
+        const step = document.createElement('div');
+        step.className = 'step';
+        step.id = `step-${i}`;
+        step.innerHTML = stepTemplate;
+        step.querySelector('.btn-next').id = `btnNext${i}`;
+        if (i === 8) {
+            step.querySelector('[data-action="next"]').textContent = '计算结果 🎉';
+        }
+        content.insertBefore(step, step9);
+        dom[`btnNext${i}`] = step.querySelector('.btn-next');
+    }
+}
+
+function initFireflies() {
+    const wrapper = document.getElementById('feedingBtnWrapper');
+    if (!wrapper) return;
+    for (let i = 1; i <= 6; i++) {
+        const span = document.createElement('span');
+        span.className = `firefly firefly-${i}`;
+        wrapper.appendChild(span);
+    }
+}
+
 // ========== 初始化 ==========
-// 先生成动态元素
 initDynamicSteps();
 initFireflies();
-// 再缓存 DOM
 cacheElements();
 
+// ========== 事件绑定 ==========
 document.querySelector('.content').addEventListener('click', function(e) {
     const petCard = e.target.closest('.pet-card');
     if (petCard && petCard.dataset.pet) {
@@ -582,6 +664,10 @@ document.querySelector('.content').addEventListener('click', function(e) {
         if (action === 'next') nextStep();
         else if (action === 'prev') prevStep();
         else if (action === 'restart') restart();
+        else if (action === 'share') {
+            updateSnapshotData();
+            dom.shareModal.classList.add('active');
+        }
     }
 });
 
@@ -599,10 +685,8 @@ resultNoteSummary.addEventListener('click', function(e) {
     e.preventDefault();
 
     if (resultNote.open) {
-        // 关闭：先播放收起动画
         resultNote.classList.add('closing');
 
-        // 等动画真正结束再关闭（监听 max-height）
         let closed = false;
         const onCloseEnd = (e) => {
             if (closed || e.propertyName !== 'max-height') return;
@@ -614,7 +698,6 @@ resultNoteSummary.addEventListener('click', function(e) {
         };
         resultNoteWrapper.addEventListener('transitionend', onCloseEnd);
 
-        // 兜底：如果 transitionend 没触发，600ms 后强制关闭
         setTimeout(() => {
             if (!closed) {
                 closed = true;
@@ -624,11 +707,86 @@ resultNoteSummary.addEventListener('click', function(e) {
             }
         }, 600);
     } else {
-        // 展开：直接打开
         resultNote.open = true;
         setTimeout(() => {
             dom.btnFeedingCalc.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 200);
+    }
+});
+
+// 分享弹窗事件
+dom.shareModalClose?.addEventListener('click', () => dom.shareModal.classList.remove('active'));
+dom.shareModal?.addEventListener('click', (e) => {
+    if (e.target === dom.shareModal) dom.shareModal.classList.remove('active');
+});
+
+dom.imagePreviewClose?.addEventListener('click', () => dom.imagePreviewModal.classList.remove('active'));
+dom.imagePreviewModal?.addEventListener('click', (e) => {
+    if (e.target === dom.imagePreviewModal) dom.imagePreviewModal.classList.remove('active');
+});
+
+// 保存图片
+dom.shareSave?.addEventListener('click', async () => {
+    try {
+        showToast('正在生成图片...');
+        const { canvas, blob } = await captureSnapshot();
+
+        if (!blob) {
+            showToast('生成图片失败');
+            return;
+        }
+
+        dom.shareModal.classList.remove('active');
+
+        if (isMobile()) {
+            showImagePreview(canvas);
+            showToast('长按图片可保存到相册');
+        } else {
+            downloadImage(blob);
+            showToast('图片已保存');
+        }
+    } catch (err) {
+        console.error('生成图片失败:', err);
+        showToast('生成图片失败: ' + err.message);
+    }
+});
+
+// 转发好友
+dom.shareNow?.addEventListener('click', async () => {
+    try {
+        showToast('正在生成分享图片...');
+        const { canvas, blob } = await captureSnapshot();
+
+        if (!blob) {
+            showToast('生成图片失败');
+            return;
+        }
+
+        const file = new File([blob], 'ukioki-snapshot.png', { type: 'image/png' });
+        const shareData = {
+            files: [file],
+            title: 'uki oki 热量计算结果',
+            text: '来看看我家毛孩子的一天热量需求吧！'
+        };
+
+        if (navigator.share && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+                dom.shareModal.classList.remove('active');
+                showToast('分享成功');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    showToast('分享失败，请重试');
+                }
+            }
+        } else {
+            dom.shareModal.classList.remove('active');
+            showImagePreview(canvas);
+            showToast('长按图片可分享或保存');
+        }
+    } catch (err) {
+        console.error('生成分享图片失败:', err);
+        showToast('生成图片失败: ' + err.message);
     }
 });
 

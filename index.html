@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="image/title-icon.png">
     <link rel="apple-touch-icon" href="image/header-icon.png">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -137,6 +138,16 @@
                         <div class="feeding-icon" id="feedingIcon"></div>
                         <div class="feeding-mer-text">您的爱宠每日大致需要摄入</div>
                         <div class="feeding-mer-value"><span id="feedingMerValue"></span> 千卡</div>
+                        <!-- 重新计算按钮 -->
+                        <div class="restart-wrapper">
+                            <button class="restart-btn" id="restartBtn" data-action="restart" title="重新计算">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="11" fill="white" stroke="#e0e721" stroke-width="1"/>
+                                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="#212322"/>
+                                </svg>
+                            </button>
+                            <span class="restart-label">重新计算</span>
+                        </div>
                     </div>
 
                     <div class="custom-calorie-section">
@@ -163,12 +174,76 @@
                     </div>
 
                     <div class="btn-row">
-                        <button class="btn btn-back-result" data-action="restart">🔄 重新计算</button>
+                        <button class="btn btn-share" id="shareBtn" data-action="share">📤 分享结果</button>
                         <a class="btn btn-restart" href="http://q.flipos.cn/s/2ep" target="_blank">🛒 前往商城</a>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- 分享弹窗 -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-modal-content">
+            <div class="share-modal-header">
+                <div class="share-modal-title">uki oki</div>
+                <button class="share-modal-close" id="shareModalClose">✕</button>
+            </div>
+            <div class="share-preview" id="sharePreview">
+                <!-- 快照内容 -->
+                <div class="snapshot-card" id="snapshotCard">
+                    <!-- 头部品牌 -->
+                    <div class="snapshot-header">
+                        <img src="image/title-icon.png" alt="uki oki" class="snapshot-logo" crossorigin="anonymous">
+                        <div class="snapshot-brand">
+                            <div class="snapshot-brand-name">uki oki 宠物鲜食</div>
+                            <div class="snapshot-brand-slogan">科学喂养，健康陪伴</div>
+                        </div>
+                        <div class="snapshot-cta-mini">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://calories.ukioki.com/&size=100x100&margin=4" alt="二维码" class="snapshot-qr-img">
+                        </div>
+                    </div>
+
+                    <!-- 核心信息 -->
+                    <div class="snapshot-main">
+                        <div class="snapshot-main-line1">
+                            <span class="main-text" id="snapshotLine1">我家小狗一天要摄入</span>
+                        </div>
+                        <div class="snapshot-main-line2">
+                            <span class="highlight-mer" id="snapshotMer">760</span>
+                            <span class="highlight-unit">千卡</span>
+                        </div>
+                        <div class="snapshot-main-line3">
+                            <span class="main-text">能炫</span>
+                            <span class="highlight-packs" id="snapshotPacks">4.4</span>
+                            <span class="highlight-unit">包</span>
+                            <span class="highlight-brand">uki oki 鲜食！</span>
+                        </div>
+                    </div>
+
+                    <!-- 底部 -->
+                    <div class="snapshot-footer">
+                        <span>uki oki 热量计算器</span>
+                        <span>·</span>
+                        <span>为毛孩子量身定制</span>
+                    </div>
+                </div>
+            </div>
+            <div class="share-actions">
+                <button class="share-action-btn secondary" id="shareSave">保存图片</button>
+                <button class="share-action-btn primary" id="shareNow">转发好友</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast" id="toast">已保存到相册</div>
+
+    <!-- 图片预览弹窗 -->
+    <div class="image-preview-modal" id="imagePreviewModal">
+        <button class="image-preview-close" id="imagePreviewClose">✕</button>
+        <img id="imagePreviewImg" src="" alt="预览图片">
+        <div class="image-preview-hint">长按图片保存到相册</div>
     </div>
 </body>
 </html>
