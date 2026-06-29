@@ -9,9 +9,8 @@
     --brand-yellow-dark: #c8ce1c;
     --brand-yellow-darker: #a3a814;
     --brand-yellow-deep: #c0c61a;
-    --brand-yellow-hover-start: #c5cc1a;
-    --brand-yellow-hover-end: #b8bf18;
     --brand-yellow-progress: #d4da1f;
+    --brand-teal: #4A6A6A;
     --border-decorative: #dab1da;
     --border-sky: #90d5ff;
 
@@ -37,7 +36,7 @@
     /* 渐变色 */
     --grad-yellow-btn: linear-gradient(135deg, var(--brand-yellow) 0%, var(--brand-yellow-dark) 100%);
     --grad-yellow-hover: linear-gradient(135deg, var(--brand-yellow-deep) 0%, var(--brand-yellow-darker) 100%);
-    --grad-yellow-feeding-hover: linear-gradient(135deg, var(--brand-yellow-hover-start) 0%, var(--brand-yellow-hover-end) 100%);
+    --grad-yellow-feeding-hover: linear-gradient(135deg, var(--brand-yellow-dark) 0%, var(--brand-yellow-darker) 100%);
     --grad-green: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-green-light) 100%);
     --grad-gray-btn: linear-gradient(135deg, #e8e6e1 0%, var(--text-light) 100%);
     --grad-gray-hover: linear-gradient(135deg, var(--bg-body-end) 0%, var(--text-light) 100%);
@@ -62,23 +61,6 @@
     --transition-fast: 0.2s ease;
     --transition-base: 0.3s ease;
     --transition-slow: 0.5s ease;
-}
-
-/* ========== 公共工具类 ========== */
-.text-gradient-brand {
-    background: var(--grad-result-text);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.2;
-}
-
-.input-suffix {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: 500;
-    pointer-events: none;
 }
 
 /* ========== 基础重置 ========== */
@@ -348,17 +330,13 @@ html { scroll-behavior: smooth; }
 }
 
 /* 灰色按钮（返回） */
-.btn-back,
-.btn-back-result {
+.btn-back {
+    flex: 0.6;
     background: var(--grad-back-btn);
     color: var(--brand-dark);
 }
 
-.btn-back { flex: 0.6; }
-.btn-back-result { flex: 1; min-height: 48px; }
-
-.btn-back:hover,
-.btn-back-result:hover {
+.btn-back:hover {
     background: var(--grad-back-hover);
     color: var(--brand-dark);
     box-shadow: 0 4px 12px rgba(33, 35, 34, 0.12);
@@ -413,8 +391,7 @@ html { scroll-behavior: smooth; }
     background-image: url('image/next-normal-arrow.png');
 }
 
-.btn-back::before,
-.btn-back-result::before {
+.btn-back::before {
     content: '';
     display: inline-block;
     width: 14px;
@@ -598,12 +575,9 @@ html { scroll-behavior: smooth; }
 .result-unit { font-size: 16px; color: var(--text-gray); margin-top: 2px; }
 
 /* 结果页阶梯入场动画 */
-.result-animate { animation: fadeInUp 0.5s ease both; }
-
-#step-9.active .result-icon,
-#step-9.active .result-label,
-#step-9.active .result-value,
-#step-9.active .result-unit { animation: fadeInUp 0.5s ease both; }
+#step-9.active :is(.result-icon, .result-label, .result-value, .result-unit) {
+    animation: fadeInUp 0.5s ease both;
+}
 
 #step-9.active .result-details { animation: fadeInUp 0.5s ease 0.15s both; }
 #step-9.active .result-note { animation: fadeInUp 0.5s ease 0.25s both; }
@@ -878,12 +852,12 @@ html { scroll-behavior: smooth; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
 .restart-btn {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: transparent;
     border: none;
@@ -898,6 +872,7 @@ html { scroll-behavior: smooth; }
 
 .restart-btn svg {
     display: block;
+    transform: rotate(180deg);
 }
 
 .restart-btn:hover {
@@ -909,16 +884,27 @@ html { scroll-behavior: smooth; }
 }
 
 .restart-label {
-    font-size: 10px;
-    color: #888;
+    font-size: 9px;
+    color: var(--text-gray);
 }
 
-/* 分享按钮（底部） */
-.btn-share {
-    background: var(--grad-yellow-btn);
-    color: var(--brand-dark);
+/* 底部操作按钮公共样式 */
+.btn-share,
+.btn-shop {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    color: var(--brand-dark);
+}
+
+.btn-share:active,
+.btn-shop:active {
+    transform: scale(0.96);
+    transition: transform 0.05s ease;
+}
+
+/* 分享按钮 */
+.btn-share {
+    background: var(--grad-yellow-btn);
     position: relative;
     z-index: 1;
 }
@@ -927,136 +913,13 @@ html { scroll-behavior: smooth; }
     background: var(--grad-yellow-hover);
 }
 
-.btn-share:active {
-    transform: scale(0.96);
-    transition: transform 0.05s ease;
+/* 前往商城按钮（反向渐变） */
+.btn-shop {
+    background: linear-gradient(135deg, var(--brand-yellow-dark) 0%, var(--brand-yellow) 100%);
 }
 
-/* 分享弹窗 */
-.share-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.share-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.share-modal-content {
-    background: white;
-    border-radius: 24px;
-    padding: 20px;
-    max-width: 400px;
-    width: 92%;
-    max-height: 90vh;
-    overflow-y: auto;
-    text-align: center;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-}
-
-.share-modal.active .share-modal-content {
-    transform: scale(1);
-}
-
-.share-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    margin-bottom: 16px;
-}
-
-.share-modal-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--brand-dark);
-    text-align: center;
-}
-
-.share-modal-close {
-    position: absolute;
-    right: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--bg-section-cool);
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    color: var(--text-gray);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.share-modal-close:hover {
-    background: #e8e8e8;
-    color: var(--brand-dark);
-}
-
-.share-modal-close:active {
-    transform: scale(0.92);
-}
-
-.share-preview {
-    background: linear-gradient(135deg, #f8f9f0 0%, #f0f4f0 100%);
-    border-radius: 16px;
-    padding: 12px;
-    margin-bottom: 16px;
-}
-
-.share-preview .snapshot-card {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-}
-
-.share-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.share-action-btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.25s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.share-action-btn.primary {
-    background: var(--grad-yellow-btn);
-    color: var(--brand-dark);
-}
-
-.share-action-btn.primary:hover {
-    background: var(--grad-yellow-hover);
-}
-
-.share-action-btn.secondary {
-    background: var(--bg-section-cool);
-    color: var(--brand-dark);
-}
-
-.share-action-btn.secondary:hover {
-    background: #e8e8e8;
+.btn-shop:hover {
+    background: linear-gradient(135deg, var(--brand-yellow-darker) 0%, var(--brand-yellow-deep) 100%);
 }
 
 /* Toast 提示 */
@@ -1135,8 +998,12 @@ html { scroll-behavior: smooth; }
     justify-content: center;
 }
 
-/* 快照卡片样式 */
+/* 快照卡片样式（屏外隐藏，供 html2canvas 渲染） */
 .snapshot-card {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 360px;
     background: linear-gradient(180deg, #fefefe 0%, #f8f9f0 100%);
     border-radius: 16px;
     padding: 20px;
@@ -1149,7 +1016,7 @@ html { scroll-behavior: smooth; }
     gap: 0;
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px dashed #e0e721;
+    border-bottom: 1px dashed var(--brand-yellow);
 }
 
 .snapshot-logo {
@@ -1169,7 +1036,7 @@ html { scroll-behavior: smooth; }
 .snapshot-brand-name {
     font-size: 16px;
     font-weight: 700;
-    color: #212322;
+    color: var(--brand-dark);
     line-height: 1.2;
     margin-bottom: 2px;
     text-align: left;
@@ -1177,7 +1044,7 @@ html { scroll-behavior: smooth; }
 
 .snapshot-brand-slogan {
     font-size: 11px;
-    color: #888;
+    color: var(--text-gray);
     line-height: 1.2;
     text-align: left;
 }
@@ -1191,7 +1058,15 @@ html { scroll-behavior: smooth; }
     width: 50px;
     height: 50px;
     border-radius: 4px;
-    border: 1px solid #e0e721;
+    border: 1px solid var(--brand-yellow);
+}
+
+.snapshot-qr-hint {
+    font-size: 8px;
+    color: var(--text-unit);
+    text-align: center;
+    margin-top: 2px;
+    white-space: nowrap;
 }
 
 .snapshot-main {
@@ -1200,7 +1075,7 @@ html { scroll-behavior: smooth; }
     padding: 28px 24px;
     margin-bottom: 16px;
     text-align: center;
-    border: 2px solid #e0e721;
+    border: 2px solid var(--brand-yellow);
 }
 
 .snapshot-main-line1 {
@@ -1209,10 +1084,6 @@ html { scroll-behavior: smooth; }
     justify-content: center;
     gap: 8px;
     margin-bottom: 12px;
-}
-
-.pet-icon-large {
-    font-size: 32px;
 }
 
 .main-text {
@@ -1237,27 +1108,28 @@ html { scroll-behavior: smooth; }
 .highlight-mer {
     font-size: 48px;
     font-weight: 800;
-    color: #e0e721;
+    color: var(--brand-yellow);
     line-height: 1;
 }
 
 .highlight-unit {
     font-size: 12px;
     font-weight: 600;
-    color: #212322;
+    color: var(--brand-dark);
+    margin-left: 4px;
 }
 
 .highlight-packs {
     font-size: 24px;
     font-weight: 800;
-    color: #4A6A6A;
+    color: var(--brand-teal);
     line-height: 1;
 }
 
 .highlight-brand {
     font-size: 12px;
     font-weight: 700;
-    color: #4A6A6A;
+    color: var(--brand-teal);
     white-space: nowrap;
 }
 
@@ -1267,7 +1139,7 @@ html { scroll-behavior: smooth; }
     align-items: center;
     gap: 8px;
     font-size: 11px;
-    color: #999;
+    color: var(--text-unit);
 }
 
 /* ========== 移动端适配 ========== */

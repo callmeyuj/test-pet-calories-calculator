@@ -2,6 +2,35 @@
 
 ---
 
+## V3.1 — 2026/06/29
+
+### 代码优化重构（核心计算链路零改动）
+
+**script.js（793 → 767 行）：**
+- 新增 `toggleSelection()` 公共函数，消除 pet-card / option-btn 选中逻辑重复
+- 新增 `handleShare()` 独立函数，从事件委托中提取 40 行分享逻辑
+- 新增 `showPreviewFallback()` 消除重复的预览+toast 调用
+- `nextStep()` / `prevStep()` 合并为 `navigateStep(offset)`
+- `getStepFlow()` 改为通用遍历，读取 STEP_CONFIGS 的 `condition` 字段
+- 步骤 7（孕哺）条件从硬编码改为配置化 `condition: (s) => ...`
+- 犬猫幼犬/幼猫 age 值统一为 `young`（原犬 `kid` / 猫 `young`）
+- DOM 缓存：btnNext0-8 自动生成；进度条节点缓存到 `progressNodes[]`
+- 事件委托从 async 恢复普通函数（async 移入 handleShare 内部）
+
+**style.css（1286 → 1157 行，-129 行）：**
+- 死代码清理：`.text-gradient-brand`、`.input-suffix`、`.btn-back-result`、`.result-animate`、`.pet-icon-large`
+- CSS 变量精简：删除 `--brand-yellow-hover-start` / `--brand-yellow-hover-end`，新增 `--brand-teal`
+- `.btn-share` / `.btn-shop` 公共样式合并（touch-action, tap-highlight, :active 缩放）
+- 快照卡片 12 处硬编码颜色替换为 CSS 变量（`--brand-dark`, `--brand-yellow`, `--text-gray`, `--text-unit`, `--brand-teal`）
+- 结果页阶梯动画 4 条规则合并为 `:is()` 单行
+
+**index.html：**
+- 无障碍增强：输入框添加 `inputmode` + `aria-label`，按钮补充 `aria-label`
+
+**核心公式零改动：** RER = 70 × weight^0.75, MER = RER × coeff
+
+---
+
 ## V3.0 — 2026/06/29
 
 ### 分享功能 + 代码优化

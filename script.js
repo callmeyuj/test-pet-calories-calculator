@@ -11,6 +11,7 @@ const POST_SURGERY_OPTIONS = [
 ];
 
 // ========== 动态步骤配置（步骤 4-8）==========
+// condition: (state) => boolean — 控制步骤是否显示，省略则始终显示
 const STEP_CONFIGS = {
     4: {
         dog: {
@@ -63,7 +64,7 @@ const STEP_CONFIGS = {
             key: 'age',
             options: [
                 { value: 'baby', label: '🍼 宝宝（4个月以下）' },
-                { value: 'kid', label: '🐾 幼犬（4 ~ 12个月）' },
+                { value: 'young', label: '🐾 幼犬（4 ~ 12个月）' },
                 { value: 'adult', label: '🐕 成年犬（1 ~ 7岁）' },
                 { value: 'senior', label: '🦯 老年犬（≥ 7岁）' }
             ]
@@ -85,6 +86,7 @@ const STEP_CONFIGS = {
             title: '怀孕与哺乳情况',
             desc: '宝贝目前是否怀孕或哺乳？',
             key: 'pregnant',
+            condition: (s) => s.gender === 'female' && s.neutered === 'no' && (s.age === 'adult' || s.age === 'senior'),
             options: [
                 { value: 'early', label: '怀孕期' },
                 { value: 'late', label: '哺乳期' },
@@ -95,6 +97,7 @@ const STEP_CONFIGS = {
             title: '怀孕与哺乳情况',
             desc: '宝贝目前是否怀孕？',
             key: 'pregnant',
+            condition: (s) => s.gender === 'female' && s.neutered === 'no' && (s.age === 'adult' || s.age === 'senior'),
             options: [
                 { value: 'yes', label: '是，正在怀孕期' },
                 { value: 'no', label: '否' }
@@ -151,25 +154,24 @@ const dom = {};
 function cacheElements() {
     const ids = [
         'weightInput', 'progressBar',
-        'btnNext0', 'btnNext1', 'btnNext2', 'btnNext3',
         'resultIcon', 'resultValue', 'detailPet', 'detailWeight',
         'detailRER', 'detailCoeff', 'resultNoteContent',
         'btnFeedingCalc', 'feedingBtnWrapper',
         'feedingIcon', 'feedingMerValue', 'suggestionBody',
         'customCalorieInput', 'customResult',
-        // 分享相关
-        'shareModal', 'shareModalClose', 'shareSave', 'shareNow',
         'snapshotCard', 'snapshotLine1', 'snapshotMer', 'snapshotPacks',
         'imagePreviewModal', 'imagePreviewImg', 'imagePreviewClose',
         'toast'
     ];
     ids.forEach(id => dom[id] = document.getElementById(id));
+    // 动态步骤按钮（btnNext0-8）
+    for (let i = 0; i <= 8; i++) {
+        dom[`btnNext${i}`] = document.getElementById(`btnNext${i}`);
+    }
 }
 
 // ========== 工具函数 ==========
-function getPetConfig() {
-    return PET_CONFIG[state.petType];
-}
+const getPetConfig = () => PET_CONFIG[state.petType];
 
 function roundToHalf(value) {
     return Math.round(value * 2) / 2;
@@ -183,6 +185,13 @@ function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
+// 通用选中切换
+function toggleSelection(container, selector, value) {
+    container.querySelectorAll(selector).forEach(el => el.classList.remove('selected'));
+    const target = container.querySelector(`${selector}[data-value="${value}"]`);
+    if (target) target.classList.add('selected');
+}
+
 // ========== 图片处理（分享功能）==========
 async function convertImagesToBase64(container) {
     const images = container.querySelectorAll('img');
@@ -191,13 +200,12 @@ async function convertImagesToBase64(container) {
             try {
                 const response = await fetch(img.src);
                 const blob = await response.blob();
-                const dataUrl = await new Promise((resolve, reject) => {
+                img.src = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
                     reader.onerror = reject;
                     reader.readAsDataURL(blob);
                 });
-                img.src = dataUrl;
             } catch (e) {
                 console.warn('图片转换失败:', e);
             }
@@ -207,7 +215,6 @@ async function convertImagesToBase64(container) {
 
 async function captureSnapshot() {
     if (!dom.snapshotCard) return null;
-
     await convertImagesToBase64(dom.snapshotCard);
 
     const canvas = await html2canvas(dom.snapshotCard, {
@@ -237,6 +244,12 @@ function downloadImage(blob) {
 function showImagePreview(canvas) {
     dom.imagePreviewImg.src = canvas.toDataURL('image/png');
     dom.imagePreviewModal.classList.add('active');
+}
+
+// 分享预览回退（不支持 Web Share 时显示图片预览）
+function showPreviewFallback(canvas) {
+    showImagePreview(canvas);
+    showToast('长按图片保存或分享');
 }
 
 // ========== 规则工厂函数 ==========
@@ -285,7 +298,7 @@ const COEFFICIENT_RULES = {
             name: '年龄',
             apply: (state, prev) => {
                 if (state.age === 'baby') return { coeff: 3.0, note: '宝宝犬 3.0' };
-                if (state.age === 'kid') return { coeff: 2.0, note: '幼犬 2.0' };
+                if (state.age === 'young') return { coeff: 2.0, note: '幼犬 2.0' };
                 if (state.age === 'senior') return { coeff: 1.2, note: '老年犬 1.2' };
                 return { coeff: prev.coeff, note: prev.note + ' → 成年犬(继承)' };
             }
@@ -345,23 +358,30 @@ const COEFFICIENT_RULES = {
 };
 
 // ========== 流程控制 ==========
+// 通用步骤流生成：遍历 STEP_CONFIGS，检查 condition
 function getStepFlow() {
-    const flow = [0, 1, 2, 3, 4, 5, 6];
-    if (state.gender === 'female' && state.neutered === 'no' &&
-        (state.age === 'adult' || state.age === 'senior')) {
-        flow.push(7);
+    const flow = [0, 1, 2, 3];
+    for (let i = 4; i <= 8; i++) {
+        const config = STEP_CONFIGS[i]?.[state.petType];
+        if (!config || (config.condition && !config.condition(state))) continue;
+        flow.push(i);
     }
-    flow.push(8, 9);
+    flow.push(9);
     return flow;
 }
 
 function getStepKey(stepNum) {
-    const keyMap = {
-        2: 'gender', 3: 'neutered',
-        4: state.petType === 'dog' ? 'exercise' : 'outdoor',
-        5: 'bodyCondition', 6: 'age', 7: 'pregnant', 8: 'postSurgery'
-    };
-    return keyMap[stepNum] || null;
+    const config = STEP_CONFIGS[stepNum]?.[state.petType];
+    if (config) return config.key;
+    const staticKeys = { 2: 'gender', 3: 'neutered' };
+    return staticKeys[stepNum] || null;
+}
+
+function navigateStep(offset) {
+    const flow = getStepFlow();
+    const idx = flow.indexOf(currentStep);
+    const next = idx + offset;
+    if (next >= 0 && next < flow.length) showStep(flow[next]);
 }
 
 // ========== UI 渲染 ==========
@@ -388,16 +408,21 @@ function renderStepOptions(stepNum) {
     }
 }
 
+// 进度条节点缓存
+let progressNodes = [];
+
 function buildProgressBar() {
     const bar = dom.progressBar;
     const flow = getStepFlow();
     const stepCount = flow.length - 1;
     bar.innerHTML = '';
+    progressNodes = [];
     for (let i = 0; i < stepCount; i++) {
         const div = document.createElement('div');
         div.className = 'progress-step';
         div.id = 'prog-' + i;
         bar.appendChild(div);
+        progressNodes.push(div);
     }
     updateProgress();
 }
@@ -405,14 +430,11 @@ function buildProgressBar() {
 function updateProgress() {
     const flow = getStepFlow();
     const currentIdx = flow.indexOf(currentStep);
-    const steps = document.querySelectorAll('.progress-step');
-    for (let i = 0; i < steps.length; i++) {
-        const el = document.getElementById('prog-' + i);
-        if (!el) continue;
+    progressNodes.forEach((el, i) => {
         el.classList.remove('active', 'done');
         if (i < currentIdx) el.classList.add('done');
         else if (i === currentIdx) el.classList.add('active');
-    }
+    });
 }
 
 function showStep(stepNum) {
@@ -442,9 +464,7 @@ function restoreSelection(stepNum) {
     const key = getStepKey(stepNum);
     if (key && state[key] !== null) {
         const stepEl = document.getElementById('step-' + stepNum);
-        stepEl.querySelectorAll('.option-btn').forEach(btn => {
-            btn.classList.toggle('selected', btn.getAttribute('data-value') === state[key]);
-        });
+        toggleSelection(stepEl, '.option-btn', state[key]);
         const btnNext = dom['btnNext' + stepNum];
         if (btnNext) btnNext.disabled = false;
     }
@@ -521,8 +541,7 @@ function updateSnapshotData() {
 // ========== 事件处理 ==========
 function selectPet(type) {
     state.petType = type;
-    document.querySelectorAll('.pet-card').forEach(c => c.classList.remove('selected'));
-    document.querySelector(`.pet-card[data-pet="${type}"]`).classList.add('selected');
+    toggleSelection(document.querySelector('.pet-options'), '.pet-card', type);
     dom.btnNext0.disabled = false;
 }
 
@@ -535,24 +554,10 @@ function onWeightInput() {
 function selectOption(step, key, value) {
     state[key] = value;
     const stepEl = document.getElementById('step-' + step);
-    stepEl.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-    const clickedBtn = stepEl.querySelector(`.option-btn[data-value="${value}"]`);
-    if (clickedBtn) clickedBtn.classList.add('selected');
+    toggleSelection(stepEl, '.option-btn', value);
     const btnNext = dom['btnNext' + step];
     if (btnNext) btnNext.disabled = false;
     if (key === 'age' || key === 'gender' || key === 'neutered') buildProgressBar();
-}
-
-function nextStep() {
-    const flow = getStepFlow();
-    const currentIdx = flow.indexOf(currentStep);
-    if (currentIdx < flow.length - 1) showStep(flow[currentIdx + 1]);
-}
-
-function prevStep() {
-    const flow = getStepFlow();
-    const currentIdx = flow.indexOf(currentStep);
-    if (currentIdx > 0) showStep(flow[currentIdx - 1]);
 }
 
 function restart() {
@@ -588,6 +593,48 @@ function onCustomCalorieInput(e) {
     } else {
         dom.customResult.innerHTML = '';
         dom.customResult.classList.remove('show');
+    }
+}
+
+// ========== 分享逻辑 ==========
+async function handleShare() {
+    try {
+        showToast('正在生成图片...');
+        updateSnapshotData();
+        const { canvas, blob } = await captureSnapshot();
+
+        if (!blob) {
+            showToast('生成图片失败');
+            return;
+        }
+
+        if (!isMobile()) {
+            downloadImage(blob);
+            showToast('图片已保存');
+            return;
+        }
+
+        // 移动端：尝试 Web Share API
+        const file = new File([blob], 'ukioki-snapshot.png', { type: 'image/png' });
+        const shareData = {
+            files: [file],
+            title: 'uki oki 热量计算结果',
+            text: '来看看我家毛孩子的一天热量需求吧！'
+        };
+
+        if (navigator.share && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+                showToast('分享成功');
+            } catch (err) {
+                if (err.name !== 'AbortError') showPreviewFallback(canvas);
+            }
+        } else {
+            showPreviewFallback(canvas);
+        }
+    } catch (err) {
+        console.error('生成图片失败:', err);
+        showToast('生成图片失败: ' + err.message);
     }
 }
 
@@ -661,13 +708,10 @@ document.querySelector('.content').addEventListener('click', function(e) {
     const actionBtn = e.target.closest('[data-action]');
     if (actionBtn) {
         const action = actionBtn.dataset.action;
-        if (action === 'next') nextStep();
-        else if (action === 'prev') prevStep();
+        if (action === 'next') navigateStep(1);
+        else if (action === 'prev') navigateStep(-1);
         else if (action === 'restart') restart();
-        else if (action === 'share') {
-            updateSnapshotData();
-            dom.shareModal.classList.add('active');
-        }
+        else if (action === 'share') handleShare();
     }
 });
 
@@ -714,80 +758,10 @@ resultNoteSummary.addEventListener('click', function(e) {
     }
 });
 
-// 分享弹窗事件
-dom.shareModalClose?.addEventListener('click', () => dom.shareModal.classList.remove('active'));
-dom.shareModal?.addEventListener('click', (e) => {
-    if (e.target === dom.shareModal) dom.shareModal.classList.remove('active');
-});
-
+// 图片预览弹窗事件
 dom.imagePreviewClose?.addEventListener('click', () => dom.imagePreviewModal.classList.remove('active'));
 dom.imagePreviewModal?.addEventListener('click', (e) => {
     if (e.target === dom.imagePreviewModal) dom.imagePreviewModal.classList.remove('active');
-});
-
-// 保存图片
-dom.shareSave?.addEventListener('click', async () => {
-    try {
-        showToast('正在生成图片...');
-        const { canvas, blob } = await captureSnapshot();
-
-        if (!blob) {
-            showToast('生成图片失败');
-            return;
-        }
-
-        dom.shareModal.classList.remove('active');
-
-        if (isMobile()) {
-            showImagePreview(canvas);
-            showToast('长按图片可保存到相册');
-        } else {
-            downloadImage(blob);
-            showToast('图片已保存');
-        }
-    } catch (err) {
-        console.error('生成图片失败:', err);
-        showToast('生成图片失败: ' + err.message);
-    }
-});
-
-// 转发好友
-dom.shareNow?.addEventListener('click', async () => {
-    try {
-        showToast('正在生成分享图片...');
-        const { canvas, blob } = await captureSnapshot();
-
-        if (!blob) {
-            showToast('生成图片失败');
-            return;
-        }
-
-        const file = new File([blob], 'ukioki-snapshot.png', { type: 'image/png' });
-        const shareData = {
-            files: [file],
-            title: 'uki oki 热量计算结果',
-            text: '来看看我家毛孩子的一天热量需求吧！'
-        };
-
-        if (navigator.share && navigator.canShare(shareData)) {
-            try {
-                await navigator.share(shareData);
-                dom.shareModal.classList.remove('active');
-                showToast('分享成功');
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    showToast('分享失败，请重试');
-                }
-            }
-        } else {
-            dom.shareModal.classList.remove('active');
-            showImagePreview(canvas);
-            showToast('长按图片可分享或保存');
-        }
-    } catch (err) {
-        console.error('生成分享图片失败:', err);
-        showToast('生成图片失败: ' + err.message);
-    }
 });
 
 buildProgressBar();

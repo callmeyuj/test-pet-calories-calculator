@@ -36,7 +36,7 @@ MER = RER × 推导系数
 **犬（5 条规则，顺序执行）：**
 1. 运动+绝育：轻度绝育 1.2 / 轻度未绝育 1.4 / 中度绝育 1.6 / 中度未绝育 1.8 / 高强度 2.0
 2. 体型：严重超重 1.0 / 超重 1.2 / 偏瘦 2.0 / 正常继承
-3. 年龄：宝宝 3.0 / 幼犬 2.0 / 老年 1.2 / 成年继承
+3. 年龄：宝宝 3.0 / 幼犬(young) 2.0 / 老年 1.2 / 成年继承
 4. 孕哺：怀孕 1.8 / 哺乳 2.0 / 非孕继承
 5. 术后：绝育术后 1.4 / 其他术后 1.0 / 健康继承
 
@@ -81,7 +81,7 @@ let state = {
     exercise: null,     // 'light' | 'moderate' | 'high'（犬）
     outdoor: null,      // 'yes' | 'no'（猫）
     bodyCondition: null,// 'severe' | 'overweight' | 'normal' | 'thin'
-    age: null,          // 'baby' | 'kid/young' | 'adult' | 'senior'
+    age: null,          // 'baby' | 'young' | 'adult' | 'senior'
     pregnant: null,     // 'early' | 'late' | 'none' | 'yes' | 'no'
     postSurgery: null   // 'spay' | 'other' | 'none'
 };
@@ -91,6 +91,10 @@ let state = {
 
 | 函数 | 作用 | 文件 |
 |------|------|------|
+| `toggleSelection()` | 通用选中切换（pet-card / option-btn 复用） | script.js |
+| `navigateStep(offset)` | 统一的前进/后退导航 | script.js |
+| `handleShare()` | 分享逻辑：生成图片 → Web Share / 预览回退 | script.js |
+| `showPreviewFallback()` | 不支持 Web Share 时显示图片预览 | script.js |
 | `initDynamicSteps()` | 动态生成 step-4~8 的 HTML 结构 | script.js |
 | `initFireflies()` | 动态生成萤火虫装饰元素 | script.js |
 | `createPostSurgeryRule()` | 规则工厂函数，生成术后恢复规则 | script.js |
@@ -114,11 +118,12 @@ let state = {
 
 ```javascript
 // 新增步骤只需在此添加配置
+// condition: (state) => boolean — 控制步骤是否显示（省略则始终显示）
 const STEP_CONFIGS = {
     4: { dog: {...}, cat: {...} },  // 运动/户外
     5: { dog: {...}, cat: {...} },  // 体型
-    6: { dog: {...}, cat: {...} },  // 年龄
-    7: { dog: {...}, cat: {...} },  // 孕哺
+    6: { dog: {...}, cat: {...} },  // 年龄（犬猫统一用 young）
+    7: { dog: { condition: (s) => ..., ... }, cat: { condition: (s) => ..., ... } },  // 孕哺（条件显示）
     8: { dog: {...}, get cat() {...} }  // 术后（用 getter 复用配置）
 };
 ```
@@ -211,7 +216,7 @@ git push origin main && git push pet-calories main
 
 ## 当前版本
 
-**V3.0** — 2026/06/29（分享功能 + 代码优化）
+**V3.1** — 2026/06/29（代码优化重构）
 
 ---
 
@@ -228,6 +233,7 @@ git push origin main && git push pet-calories main
 
 | 时间 | 内容 |
 |------|------|
+| 2026/06/29 | V3.1 代码优化重构（提取公共函数、getStepFlow 通用化、死代码清理、CSS 变量化、无障碍增强） |
 | 2026/06/29 | V3.0 分享功能（快照卡片、保存图片、转发好友）+ 代码优化（提取公共函数、DOM 缓存扩展） |
 | 2026/06/28 | V2.1 喂食量页按钮调整（左：重新计算，右：前往商城）+ harness 规范更新 |
 | 2026/06/28 | V2.0 代码结构大重构（动态步骤生成、规则工厂、CSS 变量系统、无障碍适配） |
