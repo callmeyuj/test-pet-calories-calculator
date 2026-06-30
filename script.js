@@ -413,11 +413,10 @@ let progressNodes = [];
 
 function buildProgressBar() {
     const bar = dom.progressBar;
-    const flow = getStepFlow();
-    const stepCount = flow.length - 1;
     bar.innerHTML = '';
     progressNodes = [];
-    for (let i = 0; i < stepCount; i++) {
+    // 固定 9 段（对应步骤 0-8），不随条件步骤变化
+    for (let i = 0; i < 9; i++) {
         const div = document.createElement('div');
         div.className = 'progress-step';
         div.id = 'prog-' + i;
@@ -432,8 +431,16 @@ function updateProgress() {
     const currentIdx = flow.indexOf(currentStep);
     progressNodes.forEach((el, i) => {
         el.classList.remove('active', 'done');
-        if (i < currentIdx) el.classList.add('done');
-        else if (i === currentIdx) el.classList.add('active');
+        const stepNum = i; // 段 i 对应步骤 i
+        const flowIdx = flow.indexOf(stepNum);
+        if (flowIdx >= 0) {
+            // 步骤在流程中
+            if (flowIdx < currentIdx) el.classList.add('done');
+            else if (flowIdx === currentIdx) el.classList.add('active');
+        } else {
+            // 条件跳过的步骤，只有当前位置已越过才标记为 done
+            if (stepNum < flow[currentIdx]) el.classList.add('done');
+        }
     });
 }
 
@@ -557,7 +564,6 @@ function selectOption(step, key, value) {
     toggleSelection(stepEl, '.option-btn', value);
     const btnNext = dom['btnNext' + step];
     if (btnNext) btnNext.disabled = false;
-    if (key === 'age' || key === 'gender' || key === 'neutered') buildProgressBar();
 }
 
 function restart() {
@@ -569,6 +575,7 @@ function restart() {
     dom.customCalorieInput.value = '';
     dom.customResult.innerHTML = '';
     dom.customResult.classList.remove('show');
+    dom.progressBar.style.display = '';
     buildProgressBar();
     showStep(0);
 }
