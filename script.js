@@ -137,6 +137,10 @@ const PRODUCT_DATA = {
 
 const CALORIE_DEFICIT_RATIO = 0.9;
 
+// ========== 历史记录配置 ==========
+const HISTORY_KEY = 'ukioki_history';
+const MAX_HISTORY = 50;
+
 // ========== 状态管理 ==========
 const INITIAL_STATE = {
     petType: null, weight: null, gender: null, neutered: null,
@@ -147,6 +151,7 @@ const INITIAL_STATE = {
 let state = { ...INITIAL_STATE };
 let currentStep = 0;
 let currentMER = 0;
+let activeTab = 'calc';
 
 // ========== DOM 元素缓存 ==========
 const dom = {};
@@ -161,7 +166,12 @@ function cacheElements() {
         'customCalorieInput', 'customResult',
         'snapshotCard', 'snapshotLine1', 'snapshotMer', 'snapshotPacks',
         'imagePreviewModal', 'imagePreviewImg', 'imagePreviewClose',
-        'toast'
+        'toast',
+        'historyPanel', 'historyHeader', 'historyList', 'historyEmpty', 'historyClearBtn',
+        'historyDetail', 'historyDetailClose',
+        'hdFeedingIcon', 'hdFeedingMer', 'hdCustomCalorie', 'hdCustomResult', 'hdSuggestionBody',
+        'hdShareBtn',
+        'tabBar'
     ];
     ids.forEach(id => dom[id] = document.getElementById(id));
     // 动态步骤按钮（btnNext0-8）
@@ -381,7 +391,14 @@ function navigateStep(offset) {
     const flow = getStepFlow();
     const idx = flow.indexOf(currentStep);
     const next = idx + offset;
-    if (next >= 0 && next < flow.length) showStep(flow[next]);
+    if (next >= 0 && next < flow.length) {
+        const nextStepNum = flow[next];
+        // 从最后一个问题步骤进入结果页时，保存历史记录
+        if (currentStep === 8 && nextStepNum === 9) {
+            saveToHistory();
+        }
+        showStep(nextStepNum);
+    }
 }
 
 // ========== UI 渲染 ==========
@@ -533,12 +550,15 @@ function renderBrandSuggestions() {
     }).join('');
 }
 
-function updateSnapshotData() {
+function updateSnapshotData(fromDetail = false) {
     const petName = state.petType === 'dog' ? '小狗' : '小猫';
     dom.snapshotLine1.textContent = `我家${petName}一天要摄入`;
-    dom.snapshotMer.textContent = dom.feedingMerValue.textContent;
 
-    const avgRow = dom.suggestionBody.querySelector('.average-row .col-packs');
+    const merSource = fromDetail ? dom.hdFeedingMer : dom.feedingMerValue;
+    const bodySource = fromDetail ? dom.hdSuggestionBody : dom.suggestionBody;
+
+    dom.snapshotMer.textContent = merSource.textContent;
+    const avgRow = bodySource.querySelector('.average-row .col-packs');
     if (avgRow) {
         const packsNum = parseFloat(avgRow.textContent.trim().replace(' 包', ''));
         dom.snapshotPacks.textContent = formatPacks(packsNum);
@@ -569,6 +589,7 @@ function selectOption(step, key, value) {
 function restart() {
     state = { ...INITIAL_STATE };
     currentMER = 0;
+    switchTab('calc');
     dom.weightInput.value = '';
     document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
     document.querySelectorAll('[id^="btnNext"]').forEach(btn => btn.disabled = true);
@@ -604,10 +625,10 @@ function onCustomCalorieInput(e) {
 }
 
 // ========== 分享逻辑 ==========
-async function handleShare() {
+async function handleShare(fromDetail = false) {
     try {
         showToast('正在生成图片...');
-        updateSnapshotData();
+        updateSnapshotData(fromDetail);
         const { canvas, blob } = await captureSnapshot();
 
         if (!blob) {
@@ -651,6 +672,162 @@ function showToast(message) {
     dom.toast.textContent = message;
     dom.toast.classList.add('show');
     setTimeout(() => dom.toast.classList.remove('show'), 2000);
+}
+
+// ========== 历史记录管理 ==========
+function loadHistory() {
+    try {
+        const data = localStorage.getItem(HISTORY_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveHistory(records) {
+    try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(records));
+    } catch (e) {
+        console.warn('历史记录保存失败:', e);
+    }
+}
+
+function saveToHistory() {
+    if (!state.petType || !state.weight) return;
+    const records = loadHistory();
+    const rer = 70 * Math.pow(state.weight, 0.75);
+    const { coeff } = calculateCoefficient();
+    const mer = rer * coeff;
+
+    records.unshift({
+        id: String(Date.now()),
+        state: { ...state },
+        mer: Math.round(mer),
+        rer: Math.round(rer),
+        coeff,
+        timestamp: Date.now()
+    });
+
+    if (records.length > MAX_HISTORY) records.length = MAX_HISTORY;
+    saveHistory(records);
+}
+
+function formatDate(ts) {
+    const d = new Date(ts);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}/${mm}/${dd}`;
+}
+
+function renderHistory() {
+    const records = loadHistory();
+    const list = dom.historyList;
+    const empty = dom.historyEmpty;
+
+    if (records.length === 0) {
+        list.innerHTML = '';
+        empty.classList.add('show');
+        return;
+    }
+
+    empty.classList.remove('show');
+    list.innerHTML = records.map(record => {
+        const pet = PET_CONFIG[record.state.petType] || { icon: '🐾', label: '未知' };
+        return `
+            <div class="history-card" data-record-id="${record.id}">
+                <div class="history-card-icon">${pet.icon}</div>
+                <div class="history-card-info">
+                    <div class="history-card-top">
+                        <span class="history-card-pet">${pet.label}</span>
+                        <span class="history-card-weight">${record.state.weight} kg</span>
+                    </div>
+                    <div class="history-card-date">${formatDate(record.timestamp)}</div>
+                </div>
+                <div class="history-card-mer">MER ${record.mer} 千卡</div>
+                <button class="history-card-delete" data-delete-id="${record.id}" aria-label="删除记录">✕</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function deleteRecord(id) {
+    let records = loadHistory();
+    records = records.filter(r => r.id !== id);
+    saveHistory(records);
+    renderHistory();
+    showToast('记录已删除');
+}
+
+function clearHistory() {
+    saveHistory([]);
+    renderHistory();
+    showToast('记录已清空');
+}
+
+function viewRecord(id) {
+    const records = loadHistory();
+    const record = records.find(r => r.id === id);
+    if (!record) return;
+
+    state = { ...record.state };
+    currentMER = record.mer;
+
+    renderHistoryDetail(record);
+    dom.historyHeader.style.display = 'none';
+    dom.historyList.style.display = 'none';
+    dom.historyEmpty.style.display = 'none';
+    dom.historyDetail.classList.add('show');
+}
+
+function closeHistoryDetail() {
+    dom.historyDetail.classList.remove('show');
+    dom.historyHeader.style.display = '';
+    dom.historyList.style.display = '';
+    dom.historyEmpty.style.display = '';
+    dom.hdCustomCalorie.value = '';
+    dom.hdCustomResult.innerHTML = '';
+    dom.hdCustomResult.classList.remove('show');
+}
+
+function renderHistoryDetail(record) {
+    const pet = PET_CONFIG[record.state.petType] || { icon: '🐾', label: '未知' };
+
+    dom.hdFeedingIcon.textContent = pet.icon;
+    dom.hdFeedingMer.textContent = record.mer;
+
+    // 渲染品牌建议表
+    const products = PRODUCT_DATA[record.state.petType];
+    const adjustedMER = record.mer * CALORIE_DEFICIT_RATIO;
+    dom.hdSuggestionBody.innerHTML = products.map(product => {
+        const packs = roundToHalf(adjustedMER / product.kcal);
+        const isAverage = product.name === '平均数据';
+        return `
+            <div class="suggestion-row ${isAverage ? 'average-row' : ''}">
+                <span class="col-flavor">${product.name}</span>
+                <span class="col-kcal">${product.kcal} kcal</span>
+                <span class="col-grams">${product.grams}g</span>
+                <span class="col-packs">${packs.toFixed(1)} 包</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// ========== Tab 切换 ==========
+function switchTab(tab) {
+    activeTab = tab;
+    const container = document.querySelector('.container');
+
+    dom.tabBar.querySelectorAll('.tab-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.tab === tab);
+    });
+
+    if (tab === 'history') {
+        container.classList.add('history-active');
+        closeHistoryDetail();
+        renderHistory();
+    } else {
+        container.classList.remove('history-active');
+    }
 }
 
 // ========== 初始化工具函数 ==========
@@ -725,6 +902,54 @@ document.querySelector('.content').addEventListener('click', function(e) {
 dom.weightInput.addEventListener('input', onWeightInput);
 dom.btnFeedingCalc.addEventListener('click', goToFeedingPage);
 dom.customCalorieInput.addEventListener('input', onCustomCalorieInput);
+
+// Tab 栏点击
+dom.tabBar.addEventListener('click', function(e) {
+    const tabItem = e.target.closest('.tab-item');
+    if (tabItem && tabItem.dataset.tab) {
+        switchTab(tabItem.dataset.tab);
+    }
+});
+
+// 历史记录面板点击（事件委托）
+dom.historyList.addEventListener('click', function(e) {
+    const deleteBtn = e.target.closest('.history-card-delete');
+    if (deleteBtn) {
+        e.stopPropagation();
+        deleteRecord(deleteBtn.dataset.deleteId);
+        return;
+    }
+    const card = e.target.closest('.history-card');
+    if (card && card.dataset.recordId) {
+        viewRecord(card.dataset.recordId);
+    }
+});
+
+// 清空历史记录
+dom.historyClearBtn.addEventListener('click', function() {
+    if (loadHistory().length === 0) return;
+    clearHistory();
+});
+
+// 历史详情：关闭按钮
+dom.historyDetailClose.addEventListener('click', closeHistoryDetail);
+
+// 历史详情：自定义热量输入
+dom.hdCustomCalorie.addEventListener('input', function(e) {
+    const kcalPerPack = parseFloat(e.target.value);
+    if (kcalPerPack > 0 && currentMER > 0) {
+        const adjustedMER = currentMER * CALORIE_DEFICIT_RATIO;
+        const packs = roundToHalf(adjustedMER / kcalPerPack);
+        dom.hdCustomResult.innerHTML = `每天建议喂食 <strong>${packs.toFixed(1)} 包</strong>`;
+        dom.hdCustomResult.classList.add('show');
+    } else {
+        dom.hdCustomResult.innerHTML = '';
+        dom.hdCustomResult.classList.remove('show');
+    }
+});
+
+// 历史详情：分享按钮
+dom.hdShareBtn.addEventListener('click', () => handleShare(true));
 
 // result-note 展开/收起动画
 const resultNote = document.querySelector('.result-note');

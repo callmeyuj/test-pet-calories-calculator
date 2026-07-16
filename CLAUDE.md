@@ -111,6 +111,12 @@ let state = {
 | `updateSnapshotData()` | 更新快照卡片中的动态数据 | script.js |
 | `downloadImage()` | 桌面端下载图片 | script.js |
 | `showImagePreview()` | 移动端显示图片预览弹窗 | script.js |
+| `loadHistory()` / `saveHistory()` | localStorage 读写历史记录 | script.js |
+| `saveToHistory()` | 计算完成后自动保存记录 | script.js |
+| `renderHistory()` | 渲染历史记录列表 | script.js |
+| `viewRecord(id)` | 点击记录恢复 state 并跳转结果页 | script.js |
+| `deleteRecord(id)` / `clearHistory()` | 删除单条 / 清空全部记录 | script.js |
+| `switchTab(tab)` | 底部 Tab 切换（calc / history） | script.js |
 
 ### 动态步骤配置
 
@@ -191,6 +197,11 @@ const STEP_CONFIGS = {
 - [ ] 喂食量表显示正确（5 个产品、包数计算正确）
 - [ ] 返回/重新计算功能正常
 - [ ] 手机预览正常（样式响应式）
+- [ ] 底部 Tab 切换正常（热量计算 ↔ 历史记录）
+- [ ] 完成计算后历史记录自动生成
+- [ ] 点击历史记录能正确恢复结果页
+- [ ] 单条删除和清空功能正常
+- [ ] 刷新页面后历史记录仍在（localStorage 持久化）
 
 ---
 
@@ -216,7 +227,7 @@ git push origin main && git push test-repo main
 
 ## 当前版本
 
-**V3.1** — 2026/06/29（代码优化重构）
+**V3.3** — 2026/07/16（档案功能 + 全局紧凑化 + 历史详情内嵌）
 
 ---
 
@@ -233,6 +244,8 @@ git push origin main && git push test-repo main
 
 | 时间 | 内容 |
 |------|------|
+| 2026/07/16 | V3.3 档案功能 + 全局紧凑化（卡片式 Tab、一屏显示、历史详情内嵌喂食量页、记录逻辑优化） |
+| 2026/07/03 | V3.2 快照卡片优化 + CSS清理 + 热量缺口调整（CALORIE_DEFICIT_RATIO 0.95→0.9） |
 | 2026/06/29 | V3.1 代码优化重构（提取公共函数、getStepFlow 通用化、死代码清理、CSS 变量化、无障碍增强） |
 | 2026/06/29 | V3.0 分享功能（快照卡片、保存图片、转发好友）+ 代码优化（提取公共函数、DOM 缓存扩展） |
 | 2026/06/28 | V2.1 喂食量页按钮调整（左：重新计算，右：前往商城）+ harness 规范更新 |

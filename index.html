@@ -180,6 +180,68 @@
                 </div>
             </div>
         </div>
+
+        <!-- 历史记录面板 -->
+        <div class="history-panel" id="historyPanel">
+            <div class="history-header" id="historyHeader">
+                <div class="history-title">历史记录</div>
+                <button class="history-clear-btn" id="historyClearBtn" aria-label="清空所有记录">清空</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- JS 动态生成 -->
+            </div>
+            <div class="history-empty" id="historyEmpty">
+                <div class="history-empty-icon">📋</div>
+                <div class="history-empty-text">暂无计算记录</div>
+                <div class="history-empty-hint">完成一次热量计算后，记录将出现在这里</div>
+            </div>
+
+            <!-- 历史记录详情视图 -->
+            <div class="history-detail" id="historyDetail">
+                <div class="history-detail-header">
+                    <div class="history-detail-title">计算结果</div>
+                    <button class="history-detail-close" id="historyDetailClose" aria-label="关闭">✕</button>
+                </div>
+                <div class="feeding-page">
+                    <div class="feeding-mer-summary">
+                        <div class="feeding-icon" id="hdFeedingIcon"></div>
+                        <div class="feeding-mer-text">您的爱宠每日大致需要摄入</div>
+                        <div class="feeding-mer-value"><span id="hdFeedingMer"></span> 千卡</div>
+                    </div>
+                    <div class="custom-calorie-section">
+                        <div class="section-title">自定义产品热量计算</div>
+                        <div class="brand-note">* 以 MER × 0.90 热量缺口估算</div>
+                        <div class="custom-calorie-wrapper">
+                            <input type="number" class="custom-calorie-input" id="hdCustomCalorie" placeholder="输入每份能量" min="1" step="1" inputmode="numeric" aria-label="自定义产品热量">
+                            <span class="custom-calorie-unit">千卡/份</span>
+                        </div>
+                        <div class="custom-result" id="hdCustomResult"></div>
+                    </div>
+                    <div class="brand-suggestions">
+                        <div class="brand-title">uki oki 品牌鲜食喂食建议</div>
+                        <div class="suggestion-table">
+                            <div class="suggestion-header">
+                                <span class="col-flavor">口味配方</span>
+                                <span class="col-kcal">单包能量</span>
+                                <span class="col-grams">单包克数</span>
+                                <span class="col-packs">建议包数</span>
+                            </div>
+                            <div class="suggestion-body" id="hdSuggestionBody"></div>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-share" id="hdShareBtn" aria-label="分享计算结果">📤 分享结果</button>
+                        <a class="btn btn-shop" href="http://q.flipos.cn/s/2ep" target="_blank">🛒 前往商城</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部 Tab 栏 -->
+        <nav class="tab-bar" id="tabBar">
+            <div class="tab-item active" data-tab="calc">热量计算</div>
+            <div class="tab-item" data-tab="history">历史记录</div>
+        </nav>
     </div>
 
     <!-- 快照卡片（隐藏，供 html2canvas 渲染） -->

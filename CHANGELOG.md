@@ -2,6 +2,64 @@
 
 ---
 
+## V3.3 — 2026/07/16
+
+### 档案功能 + 全局紧凑化 + 历史详情内嵌
+
+**新增功能：**
+- 底部 Tab 栏：卡片式分段控制器风格（浅灰容器 + 白色选中卡片）
+- 历史记录面板：按由近到远展示计算记录，支持单条删除和清空
+- 记录卡片：展示宠物 emoji、体重、MER 值、日期
+- 历史详情内嵌：点击记录不切 Tab，在历史面板内直接展示喂食量建议页
+- 详情页包含：MER 值、品牌建议表、自定义热量输入、分享/商城按钮
+- 详情页右上角 ✕ 关闭，返回历史列表
+- localStorage 持久化，最多 50 条
+
+**记录逻辑：**
+- 仅在完成所有步骤（step 8 → step 9）时保存一条记录
+- 从历史记录查看详情不会重复保存
+
+**全局紧凑化（一屏显示）：**
+- body padding 去除，container 全屏无圆角
+- header/progress/content/各组件间距全面缩减
+- 字号整体下调（标题 16px、按钮 14px、详情 12-13px）
+- 移动端同步适配
+
+**HTML 改动：**
+- 新增 `.tab-bar`（底部 Tab 导航）
+- 新增 `.history-panel`（历史面板 + 空状态 + 详情视图）
+- `.container` 改为 flex 布局
+
+**CSS 改动：**
+- 全局间距/字号压缩，确保一屏显示底部 Tab
+- Tab 栏卡片式分段控制器样式
+- 历史面板/卡片/空状态/详情视图样式
+- Tab 切换 CSS 规则（`.history-active` 控制显隐）
+
+**JS 改动：**
+- 新增：`loadHistory()`、`saveHistory()`、`saveToHistory()`、`renderHistory()`
+- 新增：`viewRecord()`、`closeHistoryDetail()`、`renderHistoryDetail()`、`switchTab()`
+- 新增：`deleteRecord()`、`clearHistory()`、`formatDate()`
+- 修改 `navigateStep()`：step 8→9 时保存历史
+- 修改 `restart()`：重置时切回热量计算 Tab
+- 修改 `updateSnapshotData()` / `handleShare()`：支持从历史详情分享
+- DOM 缓存扩展：`historyPanel`、`historyHeader`、`historyList`、`historyEmpty`、`historyDetail`、`historyDetailClose`、`hdFeedingIcon`、`hdFeedingMer`、`hdCustomCalorie`、`hdCustomResult`、`hdSuggestionBody`、`hdShareBtn`、`tabBar`
+
+**核心计算链路零改动：** RER/MER 公式、系数推导链、步骤流转保持不变
+
+---
+
+## V3.2 — 2026/07/03
+
+### 快照卡片优化 + CSS清理 + 热量缺口调整
+
+- **index.html**：快照卡片占位值改为 0，添加注释说明
+- **style.css**：快照卡片颜色统一为品牌绿，移除 15 个未使用 CSS 变量
+- **script.js**：`CALORIE_DEFICIT_RATIO` 从 0.95 调整为 0.9（10% 热量缺口）
+- **CLAUDE.md**：修正 Git Remote 名称（origin / test-repo）
+
+---
+
 ## V3.1 — 2026/06/29
 
 ### 代码优化重构（核心计算链路零改动）

@@ -60,18 +60,20 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 0;
 }
 
 /* ========== 容器 ========== */
 .container {
     background: #fff;
-    border-radius: 24px;
-    box-shadow:
-        0 20px 60px rgba(33, 35, 34, 0.18),
-        0 0 40px rgba(224, 231, 33, 0.08);
+    border-radius: 0;
+    box-shadow: none;
     width: 100%;
     max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     -webkit-overflow-scrolling: touch;
 }
@@ -79,7 +81,7 @@ body {
 /* ========== 头部 ========== */
 .header {
     background: linear-gradient(135deg, var(--brand-dark-light) 0%, var(--brand-dark) 100%);
-    padding: 28px 32px;
+    padding: 22px 24px;
     text-align: center;
     color: #fff;
     border-bottom: 3px solid;
@@ -94,13 +96,13 @@ body {
 }
 
 .header-icon {
-    width: 38px;
-    height: 30px;
+    width: 30px;
+    height: 24px;
     flex-shrink: 0;
 }
 
 .header h1 {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: 1px;
     color: #fff;
@@ -109,8 +111,8 @@ body {
 /* ========== 进度条 ========== */
 .progress-bar {
     display: flex;
-    padding: 20px 32px 0;
-    gap: 6px;
+    padding: 12px 24px 0;
+    gap: 5px;
 }
 
 .progress-step {
@@ -131,8 +133,10 @@ body {
 
 /* ========== 内容区 ========== */
 .content {
-    padding: 28px 32px 32px;
-    min-height: 340px;
+    padding: 14px 24px 16px;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 html { scroll-behavior: smooth; }
@@ -140,7 +144,18 @@ html { scroll-behavior: smooth; }
 .step { display: none; animation: fadeIn 0.4s ease; }
 .step.active { display: block; }
 
-#step-10 .feeding-page { padding-top: 0; margin-top: -8px; }
+/* 历史记录面板默认隐藏 */
+.history-panel { display: none; }
+
+/* Tab 切换：热量计算模式（默认） */
+.progress-bar { display: flex; }
+
+/* Tab 切换：历史记录模式 */
+.container.history-active .progress-bar,
+.container.history-active .content { display: none; }
+.container.history-active .history-panel { display: flex; flex-direction: column; }
+
+#step-10 .feeding-page { padding-top: 0; margin-top: -4px; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(12px); }
@@ -152,17 +167,17 @@ html { scroll-behavior: smooth; }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.step-title { font-size: 18px; font-weight: 700; color: var(--brand-dark); margin-bottom: 6px; }
-.step-desc { font-size: 13px; color: var(--text-gray); margin-bottom: 22px; }
+.step-title { font-size: 16px; font-weight: 700; color: var(--brand-dark); margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(--text-gray); margin-bottom: 14px; }
 
 /* ========== 宠物选择卡片 ========== */
-.pet-options { display: flex; gap: 16px; }
+.pet-options { display: flex; gap: 12px; }
 
 .pet-card {
     flex: 1;
     border: 2px solid var(--border-light);
-    border-radius: 16px;
-    padding: 24px 16px;
+    border-radius: 12px;
+    padding: 16px 12px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -178,25 +193,25 @@ html { scroll-behavior: smooth; }
 
 .pet-card:hover { transform: translateY(-2px); }
 .pet-card:active { transform: scale(0.97); transition: transform 0.1s ease; }
-.pet-card .icon { font-size: 48px; margin-bottom: 10px; }
-.pet-card .label { font-size: 16px; font-weight: 600; color: var(--brand-dark); }
+.pet-card .icon { font-size: 36px; margin-bottom: 6px; }
+.pet-card .label { font-size: 14px; font-weight: 600; color: var(--brand-dark); }
 
 /* ========== 选项按钮 ========== */
-.options { display: flex; flex-direction: column; gap: 10px; }
+.options { display: flex; flex-direction: column; gap: 8px; }
 
 .option-btn {
     border: 2px solid var(--border-light);
-    border-radius: 12px;
-    padding: 14px 18px;
+    border-radius: 10px;
+    padding: 10px 14px;
     text-align: left;
     cursor: pointer;
     transition: all 0.25s ease;
     background: var(--bg-cream);
-    font-size: 15px;
+    font-size: 14px;
     color: var(--brand-dark);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .option-btn:hover,
@@ -209,8 +224,8 @@ html { scroll-behavior: smooth; }
 .option-btn:active { transform: scale(0.98); transition: transform 0.1s ease; }
 
 .option-btn .dot {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: 2px solid var(--text-light);
     flex-shrink: 0;
@@ -237,22 +252,22 @@ html { scroll-behavior: smooth; }
 
 .option-btn small {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-gray);
     font-weight: 400;
-    margin-top: 2px;
-    line-height: 1.4;
+    margin-top: 1px;
+    line-height: 1.3;
 }
 
 /* ========== 体重输入 ========== */
-.weight-input-wrapper { position: relative; margin-bottom: 16px; }
+.weight-input-wrapper { position: relative; margin-bottom: 12px; }
 
 .weight-input {
     width: 100%;
     border: 2px solid var(--border-light);
-    border-radius: 12px;
-    padding: 16px 60px 16px 18px;
-    font-size: 24px;
+    border-radius: 10px;
+    padding: 12px 50px 12px 14px;
+    font-size: 20px;
     font-weight: 600;
     color: var(--brand-dark);
     outline: none;
@@ -285,8 +300,8 @@ html { scroll-behavior: smooth; }
 /* ========== 按钮 ========== */
 .btn-row {
     display: flex;
-    gap: 12px;
-    margin-top: 28px;
+    gap: 10px;
+    margin-top: 16px;
     position: relative;
     z-index: 2;
 }
@@ -294,9 +309,9 @@ html { scroll-behavior: smooth; }
 .btn {
     flex: 1;
     border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 15px;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
@@ -349,10 +364,10 @@ html { scroll-behavior: smooth; }
     box-shadow: none;
 }
 
-.btn-restart { margin-top: 20px; }
+.btn-restart { margin-top: 14px; }
 .btn-row .btn-restart {
     margin-top: 0;
-    min-height: 48px;
+    min-height: 42px;
 }
 
 .btn-row .btn-restart:active {
@@ -390,7 +405,7 @@ html { scroll-behavior: smooth; }
     position: relative;
     display: inline-block;
     line-height: 0;
-    margin-top: 20px;
+    margin-top: 12px;
 }
 
 .btn-wrapper .btn-restart {
@@ -538,12 +553,12 @@ html { scroll-behavior: smooth; }
 }
 
 /* ========== 结果页 ========== */
-.result-card { text-align: center; padding: 4px 0; }
-.result-icon { font-size: 44px; margin-bottom: 8px; }
-.result-label { font-size: 14px; color: var(--text-gray); margin-bottom: 4px; }
+.result-card { text-align: center; padding: 2px 0; }
+.result-icon { font-size: 32px; margin-bottom: 4px; }
+.result-label { font-size: 13px; color: var(--text-gray); margin-bottom: 2px; }
 
 .result-value {
-    font-size: 48px;
+    font-size: 40px;
     font-weight: 800;
 }
 
@@ -556,7 +571,7 @@ html { scroll-behavior: smooth; }
     line-height: 1.2;
 }
 
-.result-unit { font-size: 16px; color: var(--text-gray); margin-top: 2px; }
+.result-unit { font-size: 14px; color: var(--text-gray); margin-top: 0; }
 
 /* 结果页阶梯入场动画 */
 #step-9.active :is(.result-icon, .result-label, .result-value, .result-unit) {
@@ -572,10 +587,10 @@ html { scroll-behavior: smooth; }
 #step-9.active .result-disclaimer { animation: fadeInUp 0.5s ease 0.35s both; }
 
 .result-details {
-    margin-top: 14px;
+    margin-top: 10px;
     background: var(--bg-section-warm);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 10px;
+    padding: 10px;
     text-align: left;
     border-left: 3px solid var(--brand-yellow);
 }
@@ -583,8 +598,8 @@ html { scroll-behavior: smooth; }
 .result-details .detail-row {
     display: flex;
     justify-content: space-between;
-    padding: 4px 0;
-    font-size: 14px;
+    padding: 3px 0;
+    font-size: 13px;
     color: var(--brand-dark);
 }
 
@@ -593,19 +608,19 @@ html { scroll-behavior: smooth; }
 .result-details .detail-value { font-weight: 600; color: var(--brand-dark); }
 
 .result-note {
-    margin-top: 10px;
+    margin-top: 8px;
     background: var(--bg-section-cool);
     border-left: 3px solid var(--border-accent);
-    border-radius: 12px;
-    font-size: 13px;
+    border-radius: 10px;
+    font-size: 12px;
     color: var(--brand-dark);
-    line-height: 1.6;
+    line-height: 1.5;
     text-align: left;
     overflow: hidden;
 }
 
 .result-note summary {
-    padding: 8px 12px;
+    padding: 6px 10px;
     cursor: pointer;
     font-weight: 600;
     list-style: none;
@@ -664,24 +679,24 @@ html { scroll-behavior: smooth; }
 }
 
 .trail-list {
-    margin-top: 8px;
+    margin-top: 6px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .trail-step {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.4;
     color: var(--text-gray);
     padding-left: 4px;
 }
 
 .result-disclaimer {
-    margin-top: 10px;
-    font-size: 12px;
+    margin-top: 6px;
+    font-size: 11px;
     color: var(--text-light);
-    line-height: 1.6;
+    line-height: 1.5;
     text-align: center;
 }
 
@@ -694,40 +709,40 @@ html { scroll-behavior: smooth; }
 #step-10.active .brand-suggestions { animation: fadeInUp 0.5s ease 0.24s both; }
 #step-10.active .btn-row { animation: fadeInUp 0.5s ease 0.36s both; }
 
-.feeding-mer-summary { margin-bottom: 18px; }
-.feeding-icon { font-size: 38px; margin-bottom: 8px; }
-.feeding-mer-text { font-size: 14px; color: var(--text-gray); margin-bottom: 4px; }
+.feeding-mer-summary { margin-bottom: 12px; }
+.feeding-icon { font-size: 28px; margin-bottom: 4px; }
+.feeding-mer-text { font-size: 13px; color: var(--text-gray); margin-bottom: 2px; }
 
 .feeding-mer-value {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
 }
 
 /* ========== 自定义热量输入 ========== */
 .custom-calorie-section {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     background: var(--bg-section-warm);
-    border-radius: 12px;
-    padding: 10px 12px;
+    border-radius: 10px;
+    padding: 8px 10px;
     border-left: 3px solid var(--brand-yellow);
     text-align: left;
 }
 
 .section-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--brand-green);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
-.custom-calorie-wrapper { position: relative; margin-bottom: 6px; }
+.custom-calorie-wrapper { position: relative; margin-bottom: 4px; }
 
 .custom-calorie-input {
     width: 100%;
     border: 2px solid var(--text-light);
-    border-radius: 10px;
-    padding: 8px 60px 8px 12px;
-    font-size: 16px;
+    border-radius: 8px;
+    padding: 6px 50px 6px 10px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--brand-dark);
     outline: none;
@@ -748,57 +763,57 @@ html { scroll-behavior: smooth; }
 
 .custom-result {
     text-align: center;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--brand-dark);
     font-weight: 600;
-    min-height: 20px;
+    min-height: 18px;
     opacity: 0;
     transition: opacity 0.3s ease;
 }
 
 .custom-result.show { opacity: 1; }
-.custom-result strong { font-size: 20px; color: var(--brand-green); }
+.custom-result strong { font-size: 17px; color: var(--brand-green); }
 
 /* ========== 品牌建议表 ========== */
 .brand-suggestions {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     background: var(--bg-section-cool);
     border-left: 3px solid var(--border-accent);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 10px;
+    padding: 8px 10px;
     color: var(--brand-dark);
     text-align: left;
 }
 
 .brand-title {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--brand-dark);
     margin-bottom: 2px;
 }
 
 .brand-note {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-muted);
-    margin-bottom: 14px;
+    margin-bottom: 8px;
 }
 
 .suggestion-table { width: 100%; }
 
 .suggestion-header {
     display: flex;
-    padding: 8px 0;
+    padding: 5px 0;
     border-bottom: 2px solid var(--brand-green);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--brand-dark);
 }
 
 .suggestion-row {
     display: flex;
-    padding: 10px 0;
+    padding: 7px 0;
     border-bottom: 1px solid var(--border-accent);
-    font-size: 13px;
+    font-size: 12px;
     align-items: center;
 }
 
@@ -807,8 +822,8 @@ html { scroll-behavior: smooth; }
 .suggestion-row.average-row {
     background: rgba(224, 231, 33, 0.15);
     border-radius: 6px;
-    padding: 10px 0;
-    margin-top: 6px;
+    padding: 7px 0;
+    margin-top: 4px;
     font-weight: 600;
 }
 
@@ -1126,16 +1141,286 @@ html { scroll-behavior: smooth; }
     color: var(--text-unit);
 }
 
+/* ========== 底部 Tab 栏（卡片式分段控制器） ========== */
+.tab-bar {
+    display: flex;
+    background: var(--bg-light);
+    flex-shrink: 0;
+    padding: 10px 24px;
+    gap: 8px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+}
+
+.tab-item {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-gray);
+    text-align: center;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.tab-item:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+}
+
+.tab-item.active {
+    color: var(--brand-dark);
+    font-weight: 600;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(33, 35, 34, 0.08);
+}
+
+/* ========== 历史记录面板 ========== */
+.history-panel {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 24px 20px;
+}
+
+.history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.history-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--brand-dark);
+}
+
+.history-clear-btn {
+    font-size: 13px;
+    color: var(--text-gray);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all var(--transition-base);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.history-clear-btn:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.08);
+}
+
+/* 历史列表 */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 历史卡片 */
+.history-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-cream);
+    border: 2px solid var(--border-light);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.history-card:hover {
+    border-color: var(--brand-yellow);
+    background: var(--bg-card-selected);
+    box-shadow: 0 4px 14px rgba(224, 231, 33, 0.18);
+    transform: translateY(-1px);
+}
+
+.history-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+.history-card-icon {
+    font-size: 26px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.history-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.history-card-top {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 2px;
+}
+
+.history-card-pet {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-dark);
+}
+
+.history-card-weight {
+    font-size: 12px;
+    color: var(--text-gray);
+}
+
+.history-card-date {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.history-card-mer {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand-green);
+}
+
+.history-card-delete {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.history-card-delete:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* 删除动画 */
+.history-card.removing {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: all 0.3s ease;
+}
+
+/* 空状态 */
+.history-empty {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.history-empty.show {
+    display: flex;
+}
+
+.history-empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.history-empty-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+}
+
+.history-empty-hint {
+    font-size: 13px;
+    color: var(--text-gray);
+}
+
+/* ========== 历史记录详情视图 ========== */
+.history-detail {
+    display: none;
+}
+
+.history-detail.show {
+    display: block;
+}
+
+.history-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.history-detail-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--brand-dark);
+}
+
+.history-detail-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-light);
+    border: none;
+    font-size: 16px;
+    color: var(--brand-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.history-detail-close:hover {
+    background: var(--border-light);
+}
+
+.history-detail-close:active {
+    transform: scale(0.9);
+}
+
 /* ========== 移动端适配 ========== */
 @media (max-width: 480px) {
-    .container { border-radius: 16px; }
-    .header { padding: 22px 20px; }
-    .content { padding: 22px 20px 28px; }
-    .pet-card .icon { font-size: 36px; }
+    .header { padding: 18px 18px; }
+    .header h1 { font-size: 16px; }
+    .progress-bar { padding: 10px 18px 0; }
+    .content { padding: 12px 18px 14px; }
+    .tab-bar { padding: 10px 14px; gap: 6px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .history-panel { padding: 16px 18px 20px; }
 
-    .suggestion-header { font-size: 11px; }
-    .suggestion-row { font-size: 12px; }
+    .pet-card .icon { font-size: 30px; }
+    .pet-card { padding: 12px 10px; }
+
+    .option-btn { padding: 8px 12px; font-size: 13px; }
+
+    .suggestion-header { font-size: 10px; }
+    .suggestion-row { font-size: 11px; padding: 5px 0; }
+    .suggestion-row.average-row { padding: 5px 0; }
     .col-flavor { flex: 1.8; }
     .col-grams { flex: 1.4; }
     .col-packs { flex: 1.1; }
+
+    .history-card { padding: 10px 12px; gap: 8px; }
+    .history-card-icon { font-size: 26px; }
 }
