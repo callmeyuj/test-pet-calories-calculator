@@ -284,7 +284,7 @@ const STEP_CONFIGS = {
 
 | Remote | 地址 | 用途 | 当前状态 |
 |--------|------|------|----------|
-| `origin` | `git@github.com:callmeyuj/pet-calories-calculator.git` | 生产环境，稳定版 | V3.22 |
+| `origin` | `git@github.com:callmeyuj/pet-calories-calculator.git` | 生产环境（calories.ukioki.com） | V3.22 |
 | `test-repo` | `git@github.com:callmeyuj/test-pet-calories-calculator.git` | 测试环境 | V3.22 |
 
 **本地状态**：V3.22（与远程同步）
@@ -293,6 +293,13 @@ const STEP_CONFIGS = {
 ```bash
 git push origin main && git push test-repo main
 ```
+
+**Monorepo 迁移说明（2026/09/07）**：
+- 已创建品牌官网 Monorepo：`C:\D CodeDraft\ukioki\`
+- 本项目的完整副本已迁移至 `ukioki/calories/`
+- 新的 Git remote：`ukioki`（`git@github.com:callmeyuj/ukioki.git`）
+- 本项目（Pet_Calories_Cal）继续独立维护，运行于 `calories.ukioki.com`
+- 品牌官网（www.ukioki.com）使用 ukioki 仓库
 
 ---
 
@@ -315,6 +322,7 @@ git push origin main && git push test-repo main
 
 | 时间 | 内容 |
 |------|------|
+| 2026/09/07 | Monorepo 迁移：创建 ukioki 品牌官网仓库，本项目副本迁移至 ukioki/calories/ |
 | 2026/09/01 | V3.22 热量缺口从 0.9 调整为 0.85（犬猫通用，影响建议表及自定义热量输入） |
 | 2026/08/31 | V3.21 犬类产品数据更新（新增鸭肉冬瓜梨、改名、更新平均值）+ 文档规范整理 + 文件清理 |
 | 2026/08/31 | 本地回退至 V3.2（origin 同步），V3.3 代码已退回，仅保留记录 |
